@@ -3,6 +3,7 @@
 namespace Drush\dmt_structure_export;
 
 use Drush\dmt_structure_export\DataExporter\EntitiesDataExporter;
+use Drush\dmt_structure_export\DataExporter\FieldsDataExporter;
 use Drush\dmt_structure_export\DataExporter\OverviewDataExporter;
 use League\Csv\Writer;
 
@@ -34,6 +35,20 @@ class Controller {
 
     // Generate CSV rows.
     $export = new EntitiesDataExporter();
+    $export->process();
+    $writer->insertOne($export->getHeader());
+    $writer->insertAll($export->getRows());
+  }
+
+  /**
+   * Exports all entities and fields for this website.
+   */
+  public static function exportFields(array $options) {
+    $path = $options['destination'] . '/fields.csv';
+    $writer = Writer::createFromPath($path, 'w+');
+
+    // Generate CSV rows.
+    $export = new FieldsDataExporter();
     $export->process();
     $writer->insertOne($export->getHeader());
     $writer->insertAll($export->getRows());

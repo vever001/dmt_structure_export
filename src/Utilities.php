@@ -43,8 +43,8 @@ class Utilities {
    *   The property/field name.
    * @param string $column
    *   The property/field column name.
-   * @param string $entity_type
-   *   The entity type.
+   * @param string|array $entity_type
+   *   (Optional) The entity type or an array of entity types.
    * @param string $bundle
    *   (Optional) The entity bundle.
    *
