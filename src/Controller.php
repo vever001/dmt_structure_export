@@ -2,6 +2,8 @@
 
 namespace Drush\dmt_structure_export;
 
+use Drush\dmt_structure_export\DataExporter\EntitiesDataExporter;
+use Drush\dmt_structure_export\DataExporter\OverviewDataExporter;
 use League\Csv\Writer;
 
 /**

@@ -1,6 +1,8 @@
 <?php
 
-namespace Drush\dmt_structure_export;
+namespace Drush\dmt_structure_export\DataExporter;
+
+use Drush\dmt_structure_export\Utilities;
 
 /**
  * EntitiesDataExporter class.
@@ -33,7 +35,7 @@ class EntitiesDataExporter extends DataExporter {
   }
 
   /**
-   * Process and generate the rows.
+   * {@inheritdoc}
    */
   public function process() {
     $entity_info = entity_get_info();
@@ -87,6 +89,7 @@ class EntitiesDataExporter extends DataExporter {
               $row['property_field_cardinality'] = $field_base['cardinality'];
 
               foreach ($field_base['columns'] as $column_id => $column_info) {
+                // Add field column row.
                 $this->addRow(array_merge($row, array(
                   'property_id' => $property_id . '/' . $column_id,
                   'property_field_type' => $column_info['type'],
@@ -94,6 +97,7 @@ class EntitiesDataExporter extends DataExporter {
               }
             }
             else {
+              // Add property row.
               $this->addRow($row);
             }
           }

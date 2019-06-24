@@ -1,11 +1,11 @@
 <?php
 
-namespace Drush\dmt_structure_export;
+namespace Drush\dmt_structure_export\DataExporter;
 
 /**
  * DataExporter class.
  */
-abstract class DataExporter implements \ArrayAccess {
+abstract class DataExporter implements DataExporterInterface, \ArrayAccess {
 
   /**
    * The header array.
@@ -22,39 +22,35 @@ abstract class DataExporter implements \ArrayAccess {
   protected $rows = [];
 
   /**
-   * Sets the header.
-   *
-   * @param array $header
-   *   An associative array where keys are used to identify row elements and
-   *   values are header labels.
+   * {@inheritdoc}
    */
   public function setHeader(array $header) {
     $this->header = $header;
   }
 
   /**
-   * Returns the header.
+   * {@inheritdoc}
    */
   public function getHeader() {
     return $this->header;
   }
 
   /**
-   * Returns the rows.
+   * {@inheritdoc}
    */
   public function getRows() {
     return $this->rows;
   }
 
   /**
-   * Sets the rows.
+   * {@inheritdoc}
    */
   public function setRows(array $rows) {
     $this->rows = $rows;
   }
 
   /**
-   * Adds a row.
+   * {@inheritdoc}
    */
   public function addRow(array $row) {
     $base_row = array_fill_keys(array_keys($this->header), '');
@@ -62,7 +58,7 @@ abstract class DataExporter implements \ArrayAccess {
   }
 
   /**
-   * Clears the rows.
+   * {@inheritdoc}
    */
   public function clearRows() {
     $this->rows = [];

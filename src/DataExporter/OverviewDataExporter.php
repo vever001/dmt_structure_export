@@ -1,11 +1,13 @@
 <?php
 
-namespace Drush\dmt_structure_export;
+namespace Drush\dmt_structure_export\DataExporter;
+
+use Drush\dmt_structure_export\Utilities;
 
 /**
  * OverviewDataExporter class.
  */
-class OverviewDataExporter extends DataExporter {
+class OverviewDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
    * OverviewDataExport constructor.
@@ -20,7 +22,7 @@ class OverviewDataExporter extends DataExporter {
   }
 
   /**
-   * Process and generate the rows.
+   * {@inheritdoc}
    */
   public function process() {
     $entity_info = entity_get_info();

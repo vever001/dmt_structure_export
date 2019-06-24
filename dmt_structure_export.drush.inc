@@ -13,6 +13,13 @@ use Drush\dmt_structure_export\Controller;
 define('DMT_STRUCTURE_EXPORT_DEFAULT_DIR', 'dmt_structure_export');
 
 /**
+ * Implements hook_drush_init().
+ */
+function dmt_structure_export_drush_init() {
+  drush_autoload(__FILE__);
+}
+
+/**
  * Implements hook_drush_command().
  */
 function dmt_structure_export_drush_command() {
@@ -37,13 +44,6 @@ function dmt_structure_export_drush_command() {
   );
 
   return $items;
-}
-
-/**
- * Implements hook_drush_init().
- */
-function dmt_structure_export_drush_init() {
-  drush_autoload(__FILE__);
 }
 
 /**
