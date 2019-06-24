@@ -2,6 +2,11 @@
 
 namespace Drush\dmt_structure_export;
 
+/**
+ * Class Utilities.
+ *
+ * @package Drush\dmt_structure_export
+ */
 class Utilities {
 
   /**
@@ -32,7 +37,7 @@ class Utilities {
   }
 
   /**
-   * Returns the amount/count of field data in DB.
+   * Returns the amount/count of values in DB for the given property/field.
    *
    * @param string $property_name
    *   The property/field name.
@@ -44,7 +49,7 @@ class Utilities {
    * @return int
    *   The result from the EntityFieldQuery count.
    */
-  public static function getFieldDataCount($property_name, $entity_type, $bundle = NULL) {
+  public static function getEntityPropertyDataCount($property_name, $entity_type, $bundle = NULL) {
     if ($entity_type === 'comment' && !empty($bundle)) {
       return 'Unavailable';
     }

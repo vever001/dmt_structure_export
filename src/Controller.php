@@ -17,12 +17,28 @@ class Controller {
     $writer = Writer::createFromPath($path, 'w+');
 
     // Generate CSV rows.
-    $export = new OverviewDataExport();
+    $export = new OverviewDataExporter();
     $export->process();
     $writer->insertOne($export->getHeader());
     $writer->insertAll($export->getRows());
 
     drush_log(dt('Exported the site overview to @path', array('@path' => $path)), 'success');
+  }
+
+  /**
+   * Exports all entities and fields for this website.
+   */
+  public static function exportEntities(array $options) {
+    $path = $options['destination'] . '/entities.csv';
+    $writer = Writer::createFromPath($path, 'w+');
+
+    // Generate CSV rows.
+    $export = new EntitiesDataExporter();
+    $export->process();
+    $writer->insertOne($export->getHeader());
+    $writer->insertAll($export->getRows());
+
+    drush_log(dt('Exported the site entities to @path', array('@path' => $path)), 'success');
   }
 
 }

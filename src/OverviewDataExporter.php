@@ -3,9 +3,9 @@
 namespace Drush\dmt_structure_export;
 
 /**
- * OverviewDataExport class.
+ * OverviewDataExporter class.
  */
-class OverviewDataExport extends DataExport {
+class OverviewDataExporter extends DataExporter {
 
   /**
    * OverviewDataExport constructor.

@@ -3,9 +3,9 @@
 namespace Drush\dmt_structure_export;
 
 /**
- * OverviewExport class.
+ * DataExporter class.
  */
-abstract class DataExport implements \ArrayAccess {
+abstract class DataExporter implements \ArrayAccess {
 
   /**
    * The header array.
