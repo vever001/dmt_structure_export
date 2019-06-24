@@ -62,47 +62,53 @@ class EntitiesDataExporter extends DataExporter {
           $wrapper = entity_metadata_wrapper($entity_type, NULL, array('bundle' => $bundle));
           $entity_properties = $wrapper->getPropertyInfo();
           foreach ($entity_properties as $property_id => $property_info) {
-            // Do not export read only properties.
-            if (!empty($property_info['computed'])) {
-              continue;
-            }
-
-            $row = array(
-              'property_id' => $property_id,
-              'property_label' => $property_info['label'],
-              'property_type' => $property_info['type'],
-              'property_translatable' => $property_info['translatable'] ? 'YES' : 'NO',
-              'property_required' => $property_info['required'] ? 'YES' : 'NO',
-            );
-
-            // Field data.
-            $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
-            if (!empty($property_info['field'])) {
-              $field_base = field_info_field($property_id);
-              $row['property_field_type'] = $field_base['type'];
-              $row['property_field_module'] = $field_base['module'];
-              $row['property_field_cardinality'] = $field_base['cardinality'];
-
-              // Property count.
-              if ($property_info['queryable']) {
-                $row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $entity_type, $bundle);
-              }
-
-              foreach ($field_base['columns'] as $column_id => $column_info) {
-                // Add field column row.
-                $this->addRow(array_merge($row, array(
-                  'property_id' => $property_id . '/' . $column_id,
-                  'property_field_type' => $column_info['type'],
-                )));
-              }
-            }
-            else {
-              // Add property row.
-              $this->addRow($row);
-            }
+            $this->processEntityProperty($property_id, $property_info, $entity_type, $bundle);
           }
         }
       }
+    }
+  }
+
+  /**
+   * Process a single entity property.
+   */
+  protected function processEntityProperty($property_id, $property_info, $entity_type, $bundle) {
+    // Do not export read only properties.
+    if (!empty($property_info['computed'])) {
+      return;
+    }
+
+    $row = array(
+      'property_id' => $property_id,
+      'property_label' => $property_info['label'],
+      'property_type' => $property_info['type'],
+      'property_translatable' => $property_info['translatable'] ? 'YES' : 'NO',
+      'property_required' => $property_info['required'] ? 'YES' : 'NO',
+    );
+
+    // Field data.
+    $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
+    if (!empty($property_info['field'])) {
+      $field_base = field_info_field($property_id);
+      $row['property_field_type'] = $field_base['type'];
+      $row['property_field_module'] = $field_base['module'];
+      $row['property_field_cardinality'] = ($field_base['cardinality'] == -1 ? 'UNLIMITED' : $field_base['cardinality']);
+
+      if ($property_info['queryable']) {
+        $row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $entity_type, $bundle);
+      }
+
+      foreach ($field_base['columns'] as $column_id => $column_info) {
+        // Add field column row.
+        $this->addRow(array_merge($row, array(
+          'property_id' => $property_id . '/' . $column_id,
+          'property_field_type' => $column_info['type'],
+        )));
+      }
+    }
+    else {
+      // Add property row.
+      $this->addRow($row);
     }
   }
 
