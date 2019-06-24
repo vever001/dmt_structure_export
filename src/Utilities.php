@@ -43,26 +43,27 @@ class Utilities {
    *   The property/field name.
    * @param string $column
    *   The property/field column name.
-   * @param string|array $entity_type
+   * @param string|array $entity_types
    *   (Optional) The entity type or an array of entity types.
-   * @param string $bundle
-   *   (Optional) The entity bundle.
+   * @param string $bundles
+   *   (Optional) The entity bundle or an array of entity bundles.
    *
    * @return int
    *   The result from the EntityFieldQuery count.
    */
-  public static function getEntityPropertyDataCount($property_name, $column, $entity_type, $bundle = NULL) {
-    if ($entity_type === 'comment' && !empty($bundle)) {
+  public static function getEntityPropertyDataCount($property_name, $column, $entity_types, $bundles = NULL) {
+    if ($entity_types === 'comment' && !empty($bundles)) {
       return 'Unavailable';
     }
 
     $query = new \EntityFieldQuery();
-    $query->entityCondition('entity_type', $entity_type);
+    $query->entityCondition('entity_type', $entity_types, is_array($entity_types) ? 'IN' : '=');
 
-    if (!empty($bundle)) {
+    if (!empty($bundles)) {
+      $entity_type = is_array($entity_types) ? current($entity_types) : $entity_types;
       $entity_info = entity_get_info($entity_type);
       if (count($entity_info['bundles']) > 1) {
-        $query->entityCondition('bundle', $bundle);
+        $query->entityCondition('bundle', $bundles, is_array($bundles) ? 'IN' : '=');
       }
     }
 
