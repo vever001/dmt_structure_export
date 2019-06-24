@@ -52,6 +52,15 @@ function dmt_structure_export_drush_command() {
     ),
   );
 
+  $items['dmt-export-taxonomies'] = array(
+    'description' => 'Exports all taxonomies.',
+    'bootstrap'   => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+    'drupal dependencies' => array(),
+    'options' => array(
+      'destination' => 'Destination path for the export folder.',
+    ),
+  );
+
   return $items;
 }
 
@@ -83,6 +92,16 @@ function drush_dmt_structure_export_dmt_export_fields() {
   $options['destination'] = _dmt_site_structure_get_destination();
   Controller::exportFields($options);
   drush_log(dt('Exported the site entities to @path', array('@path' => $options['destination'])), 'success');
+}
+
+/**
+ * Call-back function for dmt-structure-export-taxonomies command.
+ */
+function drush_dmt_structure_export_dmt_export_taxonomies() {
+  $options = array();
+  $options['destination'] = _dmt_site_structure_get_destination();
+  Controller::exportTaxonomies($options);
+  drush_log(dt('Exported the site taxonomies to @path', array('@path' => $options['destination'])), 'success');
 }
 
 /**

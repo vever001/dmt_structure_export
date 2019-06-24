@@ -29,7 +29,7 @@ interface DataExporterInterface {
   /**
    * Sets the rows.
    */
-  public function setRows(array $rows);
+  public function setRows($rows);
 
   /**
    * Adds a row.

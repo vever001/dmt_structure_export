@@ -5,6 +5,7 @@ namespace Drush\dmt_structure_export;
 use Drush\dmt_structure_export\DataExporter\EntitiesDataExporter;
 use Drush\dmt_structure_export\DataExporter\FieldsDataExporter;
 use Drush\dmt_structure_export\DataExporter\OverviewDataExporter;
+use Drush\dmt_structure_export\DataExporter\TaxonomiesDataExporter;
 use League\Csv\Writer;
 
 /**
@@ -49,6 +50,20 @@ class Controller {
 
     // Generate CSV rows.
     $export = new FieldsDataExporter();
+    $export->process();
+    $writer->insertOne($export->getHeader());
+    $writer->insertAll($export->getRows());
+  }
+
+  /**
+   * Exports all taxonomies for this website.
+   */
+  public static function exportTaxonomies(array $options) {
+    $path = $options['destination'] . '/taxonomies.csv';
+    $writer = Writer::createFromPath($path, 'w+');
+
+    // Generate CSV rows.
+    $export = new TaxonomiesDataExporter();
     $export->process();
     $writer->insertOne($export->getHeader());
     $writer->insertAll($export->getRows());

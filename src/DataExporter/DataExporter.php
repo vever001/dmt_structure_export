@@ -17,7 +17,7 @@ abstract class DataExporter implements DataExporterInterface, \ArrayAccess {
   /**
    * The rows array.
    *
-   * @var array
+   * @var array|\Traversable
    */
   protected $rows = [];
 
@@ -45,7 +45,7 @@ abstract class DataExporter implements DataExporterInterface, \ArrayAccess {
   /**
    * {@inheritdoc}
    */
-  public function setRows(array $rows) {
+  public function setRows($rows) {
     $this->rows = $rows;
   }
 
