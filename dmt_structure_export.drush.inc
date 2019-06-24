@@ -53,6 +53,7 @@ function drush_dmt_structure_export_dmt_export_overview() {
   $options = array();
   $options['destination'] = _dmt_site_structure_get_destination();
   Controller::exportOverview($options);
+  drush_log(dt('Exported the site overview to @path', array('@path' => $options['destination'])), 'success');
 }
 
 /**
@@ -62,6 +63,7 @@ function drush_dmt_structure_export_dmt_export_entities() {
   $options = array();
   $options['destination'] = _dmt_site_structure_get_destination();
   Controller::exportEntities($options);
+  drush_log(dt('Exported the site entities to @path', array('@path' => $options['destination'])), 'success');
 }
 
 /**

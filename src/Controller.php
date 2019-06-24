@@ -21,8 +21,6 @@ class Controller {
     $export->process();
     $writer->insertOne($export->getHeader());
     $writer->insertAll($export->getRows());
-
-    drush_log(dt('Exported the site overview to @path', array('@path' => $path)), 'success');
   }
 
   /**
@@ -37,8 +35,6 @@ class Controller {
     $export->process();
     $writer->insertOne($export->getHeader());
     $writer->insertAll($export->getRows());
-
-    drush_log(dt('Exported the site entities to @path', array('@path' => $path)), 'success');
   }
 
 }
