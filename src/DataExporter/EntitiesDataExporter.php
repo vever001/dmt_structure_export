@@ -94,15 +94,12 @@ class EntitiesDataExporter extends DataExporter {
       $row['property_field_module'] = $field_base['module'];
       $row['property_field_cardinality'] = ($field_base['cardinality'] == -1 ? 'UNLIMITED' : $field_base['cardinality']);
 
-      if ($property_info['queryable']) {
-        $row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $entity_type, $bundle);
-      }
-
       foreach ($field_base['columns'] as $column_id => $column_info) {
         // Add field column row.
         $this->addRow(array_merge($row, array(
           'property_id' => $property_id . '/' . $column_id,
           'property_field_type' => $column_info['type'],
+          'property_count' => Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle),
         )));
       }
     }

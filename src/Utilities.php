@@ -41,6 +41,8 @@ class Utilities {
    *
    * @param string $property_name
    *   The property/field name.
+   * @param string $column
+   *   The property/field column name.
    * @param string $entity_type
    *   The entity type.
    * @param string $bundle
@@ -49,22 +51,22 @@ class Utilities {
    * @return int
    *   The result from the EntityFieldQuery count.
    */
-  public static function getEntityPropertyDataCount($property_name, $entity_type, $bundle = NULL) {
+  public static function getEntityPropertyDataCount($property_name, $column, $entity_type, $bundle = NULL) {
     if ($entity_type === 'comment' && !empty($bundle)) {
       return 'Unavailable';
     }
-
-    $field = field_info_field($property_name);
-    $columns = array_keys($field['columns']);
 
     $query = new \EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
 
     if (!empty($bundle)) {
-      $query->entityCondition('bundle', $bundle);
+      $entity_info = entity_get_info($entity_type);
+      if (count($entity_info['bundles']) > 1) {
+        $query->entityCondition('bundle', $bundle);
+      }
     }
 
-    $query->fieldCondition($property_name, $columns[0], NULL, 'IS NOT');
+    $query->fieldCondition($property_name, $column, NULL, 'IS NOT');
     $query->addMetaData('account', user_load(1));
     return (int) $query->count()->execute();
   }
