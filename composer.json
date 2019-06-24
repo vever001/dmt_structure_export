@@ -1,0 +1,23 @@
+{
+  "name": "ec-europa/dmt_structure_export",
+  "description": "Drush commands to export D7 site structure.",
+  "type": "drupal-drush",
+  "keywords": ["drupal", "drush", "automation"],
+  "require": {
+    "php": ">=5.6",
+    "league/csv": "^8.2.3"
+  },
+  "require-dev": {
+    "drupal/coder": "8.2.8",
+    "drush/drush": "^8",
+    "phpro/grumphp": "^0.14",
+    "squizlabs/php_codesniffer": "~2.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Drush\\dmt_structure_export\\": "src/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable" : true
+}

@@ -1,0 +1,3 @@
+name = DMT Structure Export
+description = Drush commands to export D7/D8 site structure.
+package = Drush
