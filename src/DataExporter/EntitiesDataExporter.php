@@ -75,11 +75,6 @@ class EntitiesDataExporter extends DataExporter {
               'property_required' => $property_info['required'] ? 'YES' : 'NO',
             );
 
-            // Property count.
-            if ($property_info['queryable'] && !empty($info['field'])) {
-              $row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $entity_type, $bundle);
-            }
-
             // Field data.
             $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
             if (!empty($property_info['field'])) {
@@ -87,6 +82,11 @@ class EntitiesDataExporter extends DataExporter {
               $row['property_field_type'] = $field_base['type'];
               $row['property_field_module'] = $field_base['module'];
               $row['property_field_cardinality'] = $field_base['cardinality'];
+
+              // Property count.
+              if ($property_info['queryable']) {
+                $row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $entity_type, $bundle);
+              }
 
               foreach ($field_base['columns'] as $column_id => $column_info) {
                 // Add field column row.
