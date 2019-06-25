@@ -14,10 +14,10 @@ class OverviewDataExporter extends DataExporter implements DataExporterInterface
    */
   public function __construct() {
     $this->header = array(
-      'entity' => 'Entity type',
-      'entity_count' => 'Entity count',
-      'bundle' => 'Bundle',
-      'bundle_count' => 'Bundle count',
+      'entity' => dt('Entity type'),
+      'entity_count' => dt('Entity count'),
+      'bundle' => dt('Bundle'),
+      'bundle_count' => dt('Bundle count'),
     );
   }
 

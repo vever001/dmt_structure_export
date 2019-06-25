@@ -14,14 +14,14 @@ class FieldsDataExporter extends DataExporter implements DataExporterInterface {
    */
   public function __construct() {
     $this->header = array(
-      'field_id' => 'Field ID',
-      'field_name' => 'Field name',
-      'field_type' => 'Field type',
-      'field_module' => 'Field module',
-      'field_cardinality' => 'Field cardinality',
-      'field_translatable' => 'Translatable',
-      'field_count' => 'Field count',
-      'field_used_in' => 'Used in',
+      'field_id' => dt('Field ID'),
+      'field_name' => dt('Field name'),
+      'field_type' => dt('Field type'),
+      'field_module' => dt('Field module'),
+      'field_cardinality' => dt('Field cardinality'),
+      'field_translatable' => dt('Translatable'),
+      'field_count' => dt('Field count'),
+      'field_used_in' => dt('Used in'),
     );
   }
 

@@ -12,10 +12,10 @@ class TaxonomiesDataExporter extends DataExporter implements DataExporterInterfa
    */
   public function __construct() {
     $this->header = array(
-      'voc.machine_name' => 'Vocabulary',
-      'term.tid' => 'Term ID',
-      'term.name' => 'Term name',
-      'term.description' => 'Term description',
+      'voc.machine_name' => dt('Vocabulary'),
+      'term.tid' => dt('Term ID'),
+      'term.name' => dt('Term name'),
+      'term.description' => dt('Term description'),
     );
   }
 

@@ -15,22 +15,22 @@ class EntitiesDataExporter extends DataExporter {
   public function __construct() {
     $this->header = array(
       // Entity data.
-      'entity' => 'Entity type',
-      'entity_count' => 'Entity count',
-      'bundle' => 'Bundle',
-      'bundle_count' => 'Bundle count',
+      'entity' => dt('Entity type'),
+      'entity_count' => dt('Entity count'),
+      'bundle' => dt('Bundle'),
+      'bundle_count' => dt('Bundle count'),
       // Property data.
-      'property_id' => 'Property ID',
-      'property_label' => 'Property Label',
-      'property_type' => 'Property type',
-      'property_translatable' => 'Property translatable',
-      'property_required' => 'Property required',
-      'property_count' => 'Property count',
+      'property_id' => dt('Property ID'),
+      'property_label' => dt('Property Label'),
+      'property_type' => dt('Property type'),
+      'property_translatable' => dt('Property translatable'),
+      'property_required' => dt('Property required'),
+      'property_count' => dt('Property count'),
       // Field data.
-      'property_field' => 'Is field?',
-      'property_field_type' => 'Field Type',
-      'property_field_module' => 'Field module',
-      'property_field_cardinality' => 'Field cardinality',
+      'property_field' => dt('Is field?'),
+      'property_field_type' => dt('Field Type'),
+      'property_field_module' => dt('Field module'),
+      'property_field_cardinality' => dt('Field cardinality'),
     );
   }
 
