@@ -5,7 +5,8 @@
  * Drush 8 commandfile for DMT Structure Export.
  */
 
-use Drush\dmt_structure_export\Controller;
+use Drush\dmt_structure_export\DataExporterFactory;
+use League\Csv\Writer;
 
 /**
  * Default directory for the exported files.
@@ -25,37 +26,13 @@ function dmt_structure_export_drush_init() {
 function dmt_structure_export_drush_command() {
   $items = array();
 
-  $items['dmt-export-overview'] = array(
-    'description' => 'Exports an overview of the site structure.',
-    'bootstrap'   => DRUSH_BOOTSTRAP_DRUPAL_FULL,
-    'drupal dependencies' => array(),
-    'options' => array(
-      'destination' => 'Destination path for the export folder.',
-    ),
-  );
-
-  $items['dmt-export-entities'] = array(
-    'description' => 'Exports all entities and fields for this website.',
+  $items['dmt-structure-export'] = array(
+    'description' => 'Exports the site structure to CSV files.',
     'bootstrap'   => DRUSH_BOOTSTRAP_DRUPAL_FULL,
     'drupal dependencies' => array('entity'),
-    'options' => array(
-      'destination' => 'Destination path for the export folder.',
+    'arguments' => array(
+      'export_types' => 'A space delimited list of exports to generate. Omit this argument to generate them all.',
     ),
-  );
-
-  $items['dmt-export-fields'] = array(
-    'description' => 'Exports all fields for this website.',
-    'bootstrap'   => DRUSH_BOOTSTRAP_DRUPAL_FULL,
-    'drupal dependencies' => array(),
-    'options' => array(
-      'destination' => 'Destination path for the export folder.',
-    ),
-  );
-
-  $items['dmt-export-taxonomies'] = array(
-    'description' => 'Exports all taxonomies.',
-    'bootstrap'   => DRUSH_BOOTSTRAP_DRUPAL_FULL,
-    'drupal dependencies' => array(),
     'options' => array(
       'destination' => 'Destination path for the export folder.',
     ),
@@ -65,43 +42,30 @@ function dmt_structure_export_drush_command() {
 }
 
 /**
- * Call-back function for dmt-structure-export-overview command.
+ * Call-back function for dmt-structure-export command.
  */
-function drush_dmt_structure_export_dmt_export_overview() {
-  $options = array();
-  $options['destination'] = _dmt_site_structure_get_destination();
-  Controller::exportOverview($options);
-  drush_log(dt('Exported the site overview to @path', array('@path' => $options['destination'])), 'success');
-}
+function drush_dmt_structure_export() {
+  $destination = _dmt_site_structure_get_destination();
+  $export_types = func_get_args();
+  if (empty($export_types)) {
+    $export_types = array_keys(DataExporterFactory::getExportTypes());
+  }
 
-/**
- * Call-back function for dmt-structure-export-entities command.
- */
-function drush_dmt_structure_export_dmt_export_entities() {
-  $options = array();
-  $options['destination'] = _dmt_site_structure_get_destination();
-  Controller::exportEntities($options);
-  drush_log(dt('Exported the site entities to @path', array('@path' => $options['destination'])), 'success');
-}
+  foreach ($export_types as $export_type) {
+    $path = $destination . '/' . $export_type . '.csv';
 
-/**
- * Call-back function for dmt-structure-export-fields command.
- */
-function drush_dmt_structure_export_dmt_export_fields() {
-  $options = array();
-  $options['destination'] = _dmt_site_structure_get_destination();
-  Controller::exportFields($options);
-  drush_log(dt('Exported the site entities to @path', array('@path' => $options['destination'])), 'success');
-}
-
-/**
- * Call-back function for dmt-structure-export-taxonomies command.
- */
-function drush_dmt_structure_export_dmt_export_taxonomies() {
-  $options = array();
-  $options['destination'] = _dmt_site_structure_get_destination();
-  Controller::exportTaxonomies($options);
-  drush_log(dt('Exported the site taxonomies to @path', array('@path' => $options['destination'])), 'success');
+    try {
+      $writer = Writer::createFromPath($path, 'w+');
+      $exporter = DataExporterFactory::createInstance($export_type);
+      $exporter->process();
+      $writer->insertOne($exporter->getHeader());
+      $writer->insertAll($exporter->getRows());
+      drush_log(dt('Exported CSV file to @path', array('@path' => $path)), 'success');
+    }
+    catch (\Exception $e) {
+      drush_log($e->getMessage(), 'error');
+    }
+  }
 }
 
 /**
@@ -115,12 +79,12 @@ function _dmt_site_structure_get_destination() {
     $dest = $destination;
   }
   else {
-    $dest = realpath(drush_get_context('DRUSH_OLDCWD', getcwd())) . '/' . $destination;
+    $dest = drush_cwd() . '/' . $destination;
   }
 
   // Create the destination dir if needed.
   if (!is_dir($dest)) {
-    drush_op('mkdir', $dest);
+    drush_mkdir($dest);
     drush_log(dt('Directory @path was created', array('@path' => $dest)), 'info');
   }
 

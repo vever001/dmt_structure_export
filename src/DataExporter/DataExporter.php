@@ -12,14 +12,14 @@ abstract class DataExporter implements DataExporterInterface, \ArrayAccess {
    *
    * @var array
    */
-  protected $header = [];
+  protected $header = array();
 
   /**
    * The rows array.
    *
    * @var array|\Traversable
    */
-  protected $rows = [];
+  protected $rows = array();
 
   /**
    * {@inheritdoc}
@@ -61,7 +61,7 @@ abstract class DataExporter implements DataExporterInterface, \ArrayAccess {
    * {@inheritdoc}
    */
   public function clearRows() {
-    $this->rows = [];
+    $this->rows = array();
   }
 
   /**
