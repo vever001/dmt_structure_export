@@ -98,7 +98,8 @@ class EntityPropertiesDataExporter extends DataExporter {
         // Add field column row.
         $this->addRow(array_merge($row, array(
           'property_id' => $property_id . '/' . $column_id,
-          'property_field_type' => $column_info['type'],
+          'property_label' => sprintf('%s (%s)', $property_info['label'], $column_id),
+          'property_type' => $column_info['type'],
           'property_count' => Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle),
         )));
       }
