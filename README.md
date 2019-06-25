@@ -13,7 +13,7 @@ The `dmt-structure-export` Drush command will generate several CSV files:
 # Install
 You can install this Drush tool:
 1. Globally (in your `~/.drush` folder)
-2. Or per drupal instance (in DRUPAL_ROOT/drush or `sites/*` like any other module)
+2. Or per drupal instance (in `DRUPAL_ROOT/drush` or `sites/*` like any other module)
 
 The recommended way is to use composer.
 - If you are using [Drupal Composer Project](https://github.com/drupal-composer/drupal-project)
@@ -28,7 +28,7 @@ The recommended way is to use composer.
     composer require vever001/dmt_structure_export:7.x-dev
     ```
 
-- Or by getting the project files manually in `~/.drush` OR `DRUPAL_ROOT/drush`.
+- Or by getting the project files manually in `~/.drush` or `DRUPAL_ROOT/drush`.
 
     ```bash
     git clone --branch 7.x git@github.com:vever001/dmt_structure_export.git
