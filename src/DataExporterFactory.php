@@ -15,8 +15,8 @@ class DataExporterFactory {
    */
   public static function getExportTypes() {
     return array(
-      'overview' => 'OverviewDataExporter',
-      'entities' => 'EntitiesDataExporter',
+      'entity_bundles' => 'EntityBundlesDataExporter',
+      'entity_properties' => 'EntityPropertiesDataExporter',
       'fields' => 'FieldsDataExporter',
       'taxonomy_terms' => 'TaxonomyTermsDataExporter',
     );

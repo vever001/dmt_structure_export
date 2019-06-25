@@ -5,12 +5,12 @@ namespace Drush\dmt_structure_export\DataExporter;
 use Drush\dmt_structure_export\Utilities;
 
 /**
- * OverviewDataExporter class.
+ * EntityBundlesDataExporter class.
  */
-class OverviewDataExporter extends DataExporter implements DataExporterInterface {
+class EntityBundlesDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
-   * OverviewDataExport constructor.
+   * EntityBundlesDataExporter constructor.
    */
   public function __construct() {
     $this->header = array(

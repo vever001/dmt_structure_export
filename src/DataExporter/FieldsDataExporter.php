@@ -10,7 +10,7 @@ use Drush\dmt_structure_export\Utilities;
 class FieldsDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
-   * OverviewDataExport constructor.
+   * FieldsDataExporter constructor.
    */
   public function __construct() {
     $this->header = array(

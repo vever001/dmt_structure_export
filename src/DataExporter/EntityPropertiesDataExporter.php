@@ -5,9 +5,9 @@ namespace Drush\dmt_structure_export\DataExporter;
 use Drush\dmt_structure_export\Utilities;
 
 /**
- * EntitiesDataExporter class.
+ * EntityPropertiesDataExporter class.
  */
-class EntitiesDataExporter extends DataExporter {
+class EntityPropertiesDataExporter extends DataExporter {
 
   /**
    * EntitiesDataExporter constructor.

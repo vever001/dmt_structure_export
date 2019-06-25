@@ -3,12 +3,12 @@
 namespace Drush\dmt_structure_export\DataExporter;
 
 /**
- * TaxonomiesDataExporter class.
+ * TaxonomyTermsDataExporter class.
  */
 class TaxonomyTermsDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
-   * OverviewDataExport constructor.
+   * TaxonomyTermsDataExporter constructor.
    */
   public function __construct() {
     $this->header = array(
