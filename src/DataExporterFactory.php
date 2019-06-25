@@ -18,6 +18,7 @@ class DataExporterFactory {
       'entity_bundles' => 'EntityBundlesDataExporter',
       'entity_properties' => 'EntityPropertiesDataExporter',
       'fields' => 'FieldsDataExporter',
+      'modules' => 'ModulesDataExporter',
       'taxonomy_terms' => 'TaxonomyTermsDataExporter',
     );
   }
