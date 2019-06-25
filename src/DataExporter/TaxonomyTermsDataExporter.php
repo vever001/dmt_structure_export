@@ -5,7 +5,7 @@ namespace Drush\dmt_structure_export\DataExporter;
 /**
  * TaxonomiesDataExporter class.
  */
-class TaxonomiesDataExporter extends DataExporter implements DataExporterInterface {
+class TaxonomyTermsDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
    * OverviewDataExport constructor.

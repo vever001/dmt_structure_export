@@ -18,7 +18,7 @@ class DataExporterFactory {
       'overview' => 'OverviewDataExporter',
       'entities' => 'EntitiesDataExporter',
       'fields' => 'FieldsDataExporter',
-      'taxonomies' => 'TaxonomiesDataExporter',
+      'taxonomy_terms' => 'TaxonomyTermsDataExporter',
     );
   }
 
