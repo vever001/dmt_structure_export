@@ -12,10 +12,10 @@ class TaxonomyTermsDataExporter extends DataExporter implements DataExporterInte
    */
   public function __construct() {
     $this->header = array(
-      'voc.machine_name' => dt('Vocabulary'),
-      'term.tid' => dt('Term ID'),
-      'term.name' => dt('Term name'),
-      'term.description' => dt('Term description'),
+      'machine_name' => dt('Vocabulary'),
+      'tid' => dt('Term ID'),
+      'name' => dt('Term name'),
+      'term_description' => dt('Term description'),
     );
   }
 
@@ -26,7 +26,8 @@ class TaxonomyTermsDataExporter extends DataExporter implements DataExporterInte
     $query = db_select('taxonomy_term_data', 'term', array('fetch' => \PDO::FETCH_ASSOC));
     $query->innerJoin('taxonomy_vocabulary', 'voc', 'term.vid = voc.vid');
     $query->fields('voc', array('machine_name'));
-    $query->fields('term', array('tid', 'name', 'description'));
+    $query->fields('term', array('tid', 'name'));
+    $query->addExpression('SUBSTRING(term.description, 1, 100)', 'term_description');
     $query->condition('term.language', array('und', 'en'), 'IN');
     $query->orderby('term.vid');
     $query->orderby('term.name');
