@@ -16,7 +16,7 @@ You can install this Drush tool:
 2. Or per drupal instance (in DRUPAL_ROOT/drush or `sites/*` like any other module)
 
 The recommended way is to use composer.
-- If you are using [Drupal Composer Project](https://github.com/drupal-composer/drupal-project:)
+- If you are using [Drupal Composer Project](https://github.com/drupal-composer/drupal-project)
     ```bash
     composer require vever001/dmt_structure_export:7.x-dev
     ```
