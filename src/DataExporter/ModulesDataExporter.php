@@ -8,7 +8,7 @@ namespace Drush\dmt_structure_export\DataExporter;
 class ModulesDataExporter extends DataExporter implements DataExporterInterface {
 
   /**
-   * TaxonomyTermsDataExporter constructor.
+   * ModulesDataExporter constructor.
    */
   public function __construct() {
     $this->header = array(
