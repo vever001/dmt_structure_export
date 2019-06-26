@@ -175,6 +175,7 @@ class EntityBundlesDataExporter extends DataExporter implements DataExporterInte
             I18N_MODE_TRANSLATE => dt('Translate (i18n_taxonomy module)'),
             I18N_MODE_MULTIPLE => dt('Translate and Localize (i18n_taxonomy module)'),
             I18N_MODE_LANGUAGE => dt('Fixed Language (i18n_taxonomy module)'),
+            I18N_MODE_ENTITY_TRANSLATION => dt('Enabled, with field translation (entity_translation module)'),
           ];
           return isset($multilingual_type_options[$multilingual_type]) ? $multilingual_type_options[$multilingual_type] : dt('Unknown');
         }
