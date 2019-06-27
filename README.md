@@ -40,7 +40,7 @@ You can install this Drush tool:
   * From `drush-extensions/Commands` run
 
      ```bash
-     git clone --branch 7.x git@github.com:vever001/dmt_structure_export.git
+     git clone --branch 7.x-1.x https://github.com/vever001/dmt_structure_export.git
      cd dmt_structure_export
      composer install --no-dev
      ```
