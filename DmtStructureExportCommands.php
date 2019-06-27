@@ -85,7 +85,7 @@ class DmtStructureExportCommands extends DrushCommands {
         $file_path = $dst_dir . '/' . $export_type . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
         $this->formatData($output, 'csv', $data, new FormatterOptions());
-        drush_log(dt('Exported CSV file to @path', array('@path' => $file_path)), LogLevel::SUCCESS);
+        drush_log(dt('Exported CSV file to @path', ['@path' => $file_path]), LogLevel::SUCCESS);
       }
       catch (\Exception $e) {
         drush_log($e->getMessage(), LogLevel::ERROR);
