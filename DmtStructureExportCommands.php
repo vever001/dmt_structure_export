@@ -84,6 +84,7 @@ class DmtStructureExportCommands extends DrushCommands {
         $file_path = $dst_dir . '/' . $key . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
         $this->formatRowsOfFields($output, 'csv', $data, new FormatterOptions());
+        drush_log(dt('Exported CSV file to @path', array('@path' => $file_path)), LogLevel::SUCCESS);
       }
     }
     catch (\Exception $e) {
@@ -127,7 +128,7 @@ class DmtStructureExportCommands extends DrushCommands {
     // Create the destination dir if needed.
     if (!is_dir($dst_dir)) {
       drush_mkdir($dst_dir);
-      drush_log(dt('Directory @path was created', ['@path' => $dst_dir]), LogLevel::ERROR);
+      drush_log(dt('Directory @path was created', ['@path' => $dst_dir]), LogLevel::INFO);
     }
 
     return $dst_dir;
