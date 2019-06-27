@@ -1,19 +1,19 @@
 <?php
 
-namespace Drush\dmt_structure_export\DataExporter;
+namespace Drush\dmt_structure_export\TableBuilder;
 
 use Drush\dmt_structure_export\Utilities;
 
 /**
- * EntityPropertiesDataExporter class.
+ * EntityPropertiesTableBuilder class.
  */
-class EntityPropertiesDataExporter extends DataExporter {
+class EntityPropertiesTableBuilder extends TableBuilder {
 
   /**
-   * EntitiesDataExporter constructor.
+   * EntityPropertiesTableBuilder constructor.
    */
   public function __construct() {
-    $this->header = array(
+    $this->header = [
       // Entity data.
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
@@ -31,60 +31,63 @@ class EntityPropertiesDataExporter extends DataExporter {
       'property_field_type' => dt('Field Type'),
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function process() {
+  public function buildRows() {
+    $this->rows = [];
     $entity_info = entity_get_info();
 
     foreach ($entity_info as $entity_type => $et_info) {
       // Entity data.
-      $row = array(
+      $entity_row = [
         'entity' => $et_info['label'] . ' (' . $entity_type . ')',
         'entity_count' => Utilities::getEntityDataCount($entity_type),
-      );
-      $this->addRow($row);
+      ];
+      $this->rows[] = $entity_row;
 
       if (!empty($et_info['bundles'])) {
         foreach ($et_info['bundles'] as $bundle => $bundle_info) {
           if (count($et_info['bundles']) > 1) {
-            $row = array(
+            $bundle_row = [
               'bundle' => $bundle_info['label'] . ' (' . $bundle . ')',
               'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle),
-            );
-            $this->addRow($row);
+            ];
+            $this->rows[] = $bundle_row;
           }
 
           // Property data.
-          $wrapper = entity_metadata_wrapper($entity_type, NULL, array('bundle' => $bundle));
+          $wrapper = entity_metadata_wrapper($entity_type, NULL, ['bundle' => $bundle]);
           $entity_properties = $wrapper->getPropertyInfo();
           foreach ($entity_properties as $property_id => $property_info) {
-            $this->processEntityProperty($property_id, $property_info, $entity_type, $bundle);
+            $this->buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle);
           }
         }
       }
     }
+
+    return $this->rows;
   }
 
   /**
    * Process a single entity property.
    */
-  protected function processEntityProperty($property_id, $property_info, $entity_type, $bundle) {
+  protected function buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle) {
     // Do not export read only properties.
     if (!empty($property_info['computed'])) {
       return;
     }
 
-    $row = array(
+    $row = [
       'property_id' => $property_id,
       'property_label' => $property_info['label'],
       'property_type' => $property_info['type'],
       'property_translatable' => $property_info['translatable'] ? 'YES' : 'NO',
       'property_required' => $property_info['required'] ? 'YES' : 'NO',
-    );
+    ];
 
     // Field data.
     $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
@@ -96,17 +99,17 @@ class EntityPropertiesDataExporter extends DataExporter {
 
       foreach ($field_base['columns'] as $column_id => $column_info) {
         // Add field column row.
-        $this->addRow(array_merge($row, array(
+        $this->rows[] = array_merge($row, [
           'property_id' => $property_id . '/' . $column_id,
-          'property_label' => sprintf('%s (%s)', $property_info['label'], $column_id),
+          'property_label' => $property_info['label'] . ' / ' . $column_id,
           'property_type' => $column_info['type'],
           'property_count' => Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle),
-        )));
+        ]);
       }
     }
     else {
       // Add property row.
-      $this->addRow($row);
+      $this->rows[] = $row;
     }
   }
 

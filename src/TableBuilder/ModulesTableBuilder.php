@@ -1,17 +1,17 @@
 <?php
 
-namespace Drush\dmt_structure_export\DataExporter;
+namespace Drush\dmt_structure_export\TableBuilder;
 
 /**
- * ModulesDataExporter class.
+ * ModulesTableBuilder class.
  */
-class ModulesDataExporter extends DataExporter implements DataExporterInterface {
+class ModulesTableBuilder extends TableBuilder {
 
   /**
-   * ModulesDataExporter constructor.
+   * ModulesTableBuilder constructor.
    */
   public function __construct() {
-    $this->header = array(
+    $this->header = [
       'package' => dt('Package'),
       'machine_name' => dt('Machine name'),
       'label' => dt('Label'),
@@ -20,18 +20,19 @@ class ModulesDataExporter extends DataExporter implements DataExporterInterface 
       'core' => dt('Core version'),
       'version' => dt('Version'),
       'description' => dt('Description'),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function process() {
+  public function buildRows() {
+    $this->rows = [];
     $extensions = drush_get_extensions(FALSE);
     uasort($extensions, '_drush_pm_sort_extensions');
 
     foreach ($extensions as $extension) {
-      $this->addRow(array(
+      $this->rows[] = [
         'package' => $extension->info['package'],
         'machine_name' => $extension->name,
         'label' => $extension->info['name'],
@@ -40,8 +41,10 @@ class ModulesDataExporter extends DataExporter implements DataExporterInterface 
         'core' => $extension->info['core'],
         'version' => $extension->info['version'],
         'description' => $extension->info['description'],
-      ));
+      ];
     }
+
+    return $this->rows;
   }
 
 }

@@ -1,19 +1,19 @@
 <?php
 
-namespace Drush\dmt_structure_export\DataExporter;
+namespace Drush\dmt_structure_export\TableBuilder;
 
 use Drush\dmt_structure_export\Utilities;
 
 /**
- * EntityBundlesDataExporter class.
+ * EntityBundlesTableBuilder class.
  */
-class EntityBundlesDataExporter extends DataExporter implements DataExporterInterface {
+class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
-   * EntityBundlesDataExporter constructor.
+   * EntityBundlesTableBuilder constructor.
    */
   public function __construct() {
-    $this->header = array(
+    $this->header = [
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
       'bundle' => dt('Bundle'),
@@ -23,21 +23,22 @@ class EntityBundlesDataExporter extends DataExporter implements DataExporterInte
       'comment_settings' => dt('Comment settings'),
       'revisions_enabled' => dt('Revisions enabled'),
       'moderation_enabled' => dt('Workbench moderation enabled'),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function process() {
+  public function buildRows() {
+    $this->rows = [];
     $entity_info = entity_get_info();
 
     foreach ($entity_info as $entity_type => $et_info) {
       $has_bundles = !empty($et_info['bundles']) && count($et_info['bundles']) > 1;
-      $entity_row = array(
+      $entity_row = [
         'entity' => $et_info['label'] . ' (' . $entity_type . ')',
         'entity_count' => Utilities::getEntityDataCount($entity_type),
-      );
+      ];
 
       if (!$has_bundles) {
         // Multilingual settings.
@@ -46,15 +47,15 @@ class EntityBundlesDataExporter extends DataExporter implements DataExporterInte
         $entity_row['multilingual_type'] = $multilingual_type;
       }
 
-      $this->addRow($entity_row);
+      $this->rows[] = $entity_row;
 
       // Process bundles.
       if ($has_bundles) {
         foreach ($et_info['bundles'] as $bundle => $bundle_info) {
-          $bundle_row = array(
+          $bundle_row = [
             'bundle' => $bundle_info['label'] . ' (' . $bundle . ')',
             'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle),
-          );
+          ];
 
           // Multilingual settings.
           $multilingual_type = $this->getEntityTranslationType($entity_type, $bundle);
@@ -64,35 +65,40 @@ class EntityBundlesDataExporter extends DataExporter implements DataExporterInte
           // Entity type specific process.
           switch ($entity_type) {
             case 'node':
-              $bundle_row += $this->processNodeBundleRow($bundle);
+              $bundle_row += $this->buildNodeBundleRow($bundle);
               break;
           }
 
-          $this->addRow($bundle_row);
+          $this->rows[] = $bundle_row;
         }
       }
     }
+
+    return $this->rows;
   }
 
   /**
    * Process a node bundle row.
    */
-  protected function processNodeBundleRow($bundle) {
-    $row = array();
+  protected function buildNodeBundleRow($bundle) {
+    $row = [];
 
     // Comments.
     if (module_exists('comment')) {
       $comment_enabled = variable_get('comment_' . $bundle, COMMENT_NODE_OPEN);
-      $comment_enabled_options = array(
+      $comment_enabled_options = [
         COMMENT_NODE_OPEN => dt('Open'),
         COMMENT_NODE_CLOSED => dt('Closed'),
         COMMENT_NODE_HIDDEN => dt('Hidden'),
-      );
+      ];
       $row['comment_settings'] = isset($comment_enabled_options[$comment_enabled]) ? $comment_enabled_options[$comment_enabled] : dt('Unknown');
     }
 
     // Revisions.
-    $node_options = variable_get('node_options_' . $bundle, array('status', 'promote'));
+    $node_options = variable_get('node_options_' . $bundle, [
+      'status',
+      'promote',
+    ]);
     $row['revisions_enabled'] = in_array('revision', $node_options) ? 'TRUE' : 'FALSE';
 
     // Moderation.
@@ -125,11 +131,11 @@ class EntityBundlesDataExporter extends DataExporter implements DataExporterInte
   protected function getEntityTranslationTypeNode($bundle) {
     $multilingual_type = variable_get('language_content_type_' . $bundle, 0);
     if ($multilingual_type) {
-      $multilingual_type_options = array(
+      $multilingual_type_options = [
         1 => dt('Enabled (no translations)'),
         TRANSLATION_ENABLED => dt('Enabled, with translation (translation module)'),
         ENTITY_TRANSLATION_ENABLED => dt('Enabled, with field translation (entity_translation module)'),
-      );
+      ];
       return isset($multilingual_type_options[$multilingual_type]) ? $multilingual_type_options[$multilingual_type] : dt('Unknown');
     }
   }

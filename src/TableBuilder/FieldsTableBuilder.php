@@ -1,19 +1,19 @@
 <?php
 
-namespace Drush\dmt_structure_export\DataExporter;
+namespace Drush\dmt_structure_export\TableBuilder;
 
 use Drush\dmt_structure_export\Utilities;
 
 /**
- * FieldsDataExporter class.
+ * FieldsTableBuilder class.
  */
-class FieldsDataExporter extends DataExporter implements DataExporterInterface {
+class FieldsTableBuilder extends TableBuilder {
 
   /**
-   * FieldsDataExporter constructor.
+   * FieldsTableBuilder constructor.
    */
   public function __construct() {
-    $this->header = array(
+    $this->header = [
       'field_id' => dt('Field ID'),
       'field_name' => dt('Field name'),
       'field_type' => dt('Field type'),
@@ -22,30 +22,32 @@ class FieldsDataExporter extends DataExporter implements DataExporterInterface {
       'field_translatable' => dt('Translatable'),
       'field_count' => dt('Field count'),
       'field_used_in' => dt('Used in'),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function process() {
+  public function buildRows() {
+    $this->rows = [];
+
     $fields = field_info_fields();
     foreach ($fields as $field_id => $field_info) {
       if (!empty($field_info['bundles'])) {
-        $row = array(
+        $row = [
           'field_id' => $field_info['id'],
           'field_name' => $field_info['field_name'],
           'field_type' => $field_info['type'],
           'field_module' => $field_info['module'],
           'field_cardinality' => ($field_info['cardinality'] == -1 ? 'UNLIMITED' : $field_info['cardinality']),
           'field_translatable' => $field_info['translatable'] ? 'YES' : 'NO',
-        );
+        ];
 
         $column = current(array_keys($field_info['columns']));
         $entity_types = array_keys($field_info['bundles']);
         $row['field_count'] = Utilities::getEntityPropertyDataCount($field_id, $column, $entity_types);
 
-        $used_in_array = array();
+        $used_in_array = [];
         foreach ($field_info['bundles'] as $entity => $bundles) {
           $used_in_array[] = dt('@entity (@bundles)', [
             '@entity' => $entity,
@@ -54,9 +56,11 @@ class FieldsDataExporter extends DataExporter implements DataExporterInterface {
         }
         $row['field_used_in'] = implode(', ', $used_in_array);
 
-        $this->addRow($row);
+        $this->rows[] = $row;
       }
     }
+
+    return $this->rows;
   }
 
 }
