@@ -7,6 +7,7 @@ use Consolidation\OutputFormatters\Options\FormatterOptions;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drush\Commands\DrushCommands;
 use Drush\dmt_structure_export\TableBuilder\TableBuilderManager;
+use Drush\Log\LogLevel;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 
@@ -52,7 +53,7 @@ class DmtStructureExportCommands extends DrushCommands {
       return new RowsOfFields($table);
     }
     catch (\Exception $e) {
-      $this->logger()->error($e->getMessage());
+      drush_log($e->getMessage(), LogLevel::ERROR);
     }
   }
 
@@ -70,9 +71,8 @@ class DmtStructureExportCommands extends DrushCommands {
    */
   public function exportAll(array $options = ['destination' => '', 'format' => 'csv']) {
     try {
-      var_dump($options['destination']);
       drush_autoload(__FILE__);
-      $dst_directory = $this->getDestinationDirectory();
+      $dst_dir = $this->getDestinationDirectory($options['destination']);
 
       $table_types = TableBuilderManager::getTableBuilderTypes();
       foreach ($table_types as $key => $table_type) {
@@ -81,13 +81,13 @@ class DmtStructureExportCommands extends DrushCommands {
         $data = drush_op([$this, 'export'], $key, $options);
 
         // Write to CSV.
-        $file_path = $dst_directory . '/' . $key . '.csv';
+        $file_path = $dst_dir . '/' . $key . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
         $this->formatRowsOfFields($output, 'csv', $data, new FormatterOptions());
       }
     }
     catch (\Exception $e) {
-      $this->logger()->error($e->getMessage());
+      drush_log($e->getMessage(), LogLevel::ERROR);
     }
   }
 
@@ -116,24 +116,21 @@ class DmtStructureExportCommands extends DrushCommands {
   /**
    * Returns the destination folder.
    */
-  protected function getDestinationDirectory() {
-    $destination = drush_get_option('destination', self::DMT_STRUCTURE_EXPORT_DEFAULT_DIR);
+  protected function getDestinationDirectory($destination) {
+    $dst_dir = !empty($destination) ? $destination : self::DMT_STRUCTURE_EXPORT_DEFAULT_DIR;
 
-    // Let's see if the given destination is a absolute path.
-    if (strpos($destination, '/') === 0) {
-      $dest = $destination;
-    }
-    else {
-      $dest = drush_cwd() . '/' . $destination;
+    // Handle relative or absolute paths.
+    if (strpos($dst_dir, '/') !== 0) {
+      $dst_dir = drush_cwd() . '/' . $dst_dir;
     }
 
     // Create the destination dir if needed.
-    if (!is_dir($dest)) {
-      drush_mkdir($dest);
-      $this->logger()->info(dt('Directory @path was created', ['@path' => $dest]));
+    if (!is_dir($dst_dir)) {
+      drush_mkdir($dst_dir);
+      drush_log(dt('Directory @path was created', ['@path' => $dst_dir]), LogLevel::ERROR);
     }
 
-    return $dest;
+    return $dst_dir;
   }
 
 }
