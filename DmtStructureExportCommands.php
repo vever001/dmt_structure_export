@@ -6,7 +6,7 @@ use Consolidation\OutputFormatters\FormatterManager;
 use Consolidation\OutputFormatters\Options\FormatterOptions;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drush\Commands\DrushCommands;
-use Drush\dmt_structure_export\TableBuilder\TableBuilderManager;
+use Drush\dmt_structure_export\TableBuilderManager;
 use Drush\Log\LogLevel;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
@@ -70,30 +70,31 @@ class DmtStructureExportCommands extends DrushCommands {
    * @bootstrap DRUSH_BOOTSTRAP_DRUPAL_FULL
    */
   public function exportAll(array $options = ['destination' => '', 'format' => 'csv']) {
-    try {
-      drush_autoload(__FILE__);
-      $dst_dir = $this->getDestinationDirectory($options['destination']);
+    drush_autoload(__FILE__);
+    $dst_dir = $this->getDestinationDirectory($options['destination']);
 
-      $table_types = TableBuilderManager::getTableBuilderTypes();
-      foreach ($table_types as $key => $table_type) {
-        // Call the export command.
-        /** @var \Consolidation\OutputFormatters\StructuredData\RowsOfFields $data */
-        $data = drush_op([$this, 'export'], $key, $options);
+    $table_types = TableBuilderManager::getTableBuilderTypes();
+    foreach ($table_types as $export_type => $table_type) {
+      try {
+        // Build table.
+        $table_builder = TableBuilderManager::createInstance($export_type);
+        $table_builder->buildRows();
+        $data = new RowsOfFields($table_builder->getTable());
 
         // Write to CSV.
-        $file_path = $dst_dir . '/' . $key . '.csv';
+        $file_path = $dst_dir . '/' . $export_type . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
-        $this->formatRowsOfFields($output, 'csv', $data, new FormatterOptions());
+        $this->formatData($output, 'csv', $data, new FormatterOptions());
         drush_log(dt('Exported CSV file to @path', array('@path' => $file_path)), LogLevel::SUCCESS);
       }
-    }
-    catch (\Exception $e) {
-      drush_log($e->getMessage(), LogLevel::ERROR);
+      catch (\Exception $e) {
+        drush_log($e->getMessage(), LogLevel::ERROR);
+      }
     }
   }
 
   /**
-   * Formats a given RowsOfFields object.
+   * Formats and writes RowsOfFields using Consolidation\OutputFormatters.
    *
    * @param \Symfony\Component\Console\Output\OutputInterface $output
    *   Output stream to write to.
@@ -106,12 +107,9 @@ class DmtStructureExportCommands extends DrushCommands {
    *
    * @throws \Consolidation\OutputFormatters\Exception\InvalidFormatException
    */
-  protected function formatRowsOfFields(OutputInterface $output, $format, RowsOfFields $data, FormatterOptions $options) {
-    /** @var \Consolidation\OutputFormatters\StructuredData\TableDataInterface $table_transformer */
-    $table_transformer = $data->restructure($options);
-    $table_data = $table_transformer->getTableData();
+  protected function formatData(OutputInterface $output, $format, RowsOfFields $data, FormatterOptions $options) {
     $formatterManager = new FormatterManager();
-    $formatterManager->write($output, $format, $table_data, $options);
+    $formatterManager->write($output, $format, $data, $options);
   }
 
   /**

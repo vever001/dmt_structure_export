@@ -1,6 +1,6 @@
 <?php
 
-namespace Drush\dmt_structure_export\TableBuilder;
+namespace Drush\dmt_structure_export;
 
 /**
  * Class TableBuilderManager.
