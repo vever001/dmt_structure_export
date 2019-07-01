@@ -14,9 +14,8 @@ The `dmt-se:export-all` command will run all exports and generate CSV files:
 
 # Requirements
 
-* PHP 5.6 or higher
-* Drush 8.1.18 or higher is required:
-  *  this tool uses [Consolidation\AnnotatedCommand](https://github.com/consolidation/annotated-command) and [Consolidation\OutputFormatters](https://github.com/consolidation/output-formatters) 
+* PHP 7.1 or higher
+* Drush 8.2 / 9.0 or higher
 
 # Installation
 
@@ -28,19 +27,24 @@ You can install this Drush tool:
 
     ```bash
     composer require composer/installers
-    composer require vever001/dmt_structure_export:7.x-1.x-dev
+    composer require vever001/dmt_structure_export:8.x-1.x-dev
     ```
 
 2\. Or globally (in your `~/.drush` folder)
 
   * Create a `drush-extensions/Commands` folder in `~/.drush`
-  * Copy the [example.drushrc.php file](https://github.com/drush-ops/drush/blob/8.x/examples/example.drushrc.php) to `~/.drush` and rename it to `drushrc.php`
+  * Copy the [example.drush.yml file](https://github.com/drush-ops/drush/blob/master/examples/example.drush.yml) to `~/.drush` and rename it to `drushrc.yml`
   * Add and adapt the following:
-    * `$options['include'] = array('/path/to/drush-extensions');`
+    * ```
+      drush:
+        paths:
+          include:
+            - '${env.home}/path/to/drush-extensions'
+      ```
   * From `drush-extensions/Commands` run
 
      ```bash
-     git clone --branch 7.x-1.x https://github.com/vever001/dmt_structure_export.git
+     git clone --branch 8.x-1.x https://github.com/vever001/dmt_structure_export.git
      cd dmt_structure_export
      composer install --no-dev
      ```
