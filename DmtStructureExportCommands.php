@@ -2,6 +2,7 @@
 
 namespace Drush\Commands\dmt_structure_export;
 
+use Composer\Autoload\ClassLoader;
 use Consolidation\OutputFormatters\FormatterManager;
 use Consolidation\OutputFormatters\Options\FormatterOptions;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
@@ -20,6 +21,17 @@ class DmtStructureExportCommands extends DrushCommands {
    * Default directory for the exported files.
    */
   const DMT_STRUCTURE_EXPORT_DEFAULT_DIR = 'dmt_structure_export';
+
+  /**
+   * Autoload our files if they are not already loaded.
+   */
+  public function init() {
+    if (!class_exists(TableBuilderManager::class)) {
+      $loader = new ClassLoader();
+      $loader->addPsr4('Drush\\dmt_structure_export\\', __DIR__ . '/src');
+      $loader->register();
+    }
+  }
 
   /**
    * Exports website structure/data information to CSV or table of fields.
@@ -46,8 +58,9 @@ class DmtStructureExportCommands extends DrushCommands {
    */
   public function export($export_type, array $options = ['format' => 'csv']) {
     try {
-      drush_autoload(__FILE__);
-      $table_builder = TableBuilderManager::createInstance($export_type);
+      $this->init();
+      $manager = new TableBuilderManager();
+      $table_builder = $manager->getTableBuilder($export_type);
       $table_builder->buildRows();
       $table = $table_builder->getTable();
       return new RowsOfFields($table);
@@ -70,14 +83,14 @@ class DmtStructureExportCommands extends DrushCommands {
    * @bootstrap DRUSH_BOOTSTRAP_DRUPAL_FULL
    */
   public function exportAll(array $options = ['destination' => '', 'format' => 'csv']) {
-    drush_autoload(__FILE__);
+    $this->init();
     $dst_dir = $this->getDestinationDirectory($options['destination']);
+    $manager = new TableBuilderManager();
+    $exports = $manager->getTableBuilders();
 
-    $table_types = TableBuilderManager::getTableBuilderTypes();
-    foreach ($table_types as $export_type => $table_type) {
+    foreach ($exports as $export_type => $table_builder) {
       try {
         // Build table.
-        $table_builder = TableBuilderManager::createInstance($export_type);
         $table_builder->buildRows();
         $data = new RowsOfFields($table_builder->getTable());
 
