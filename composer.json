@@ -1,17 +1,16 @@
 {
   "name": "vever001/dmt_structure_export",
-  "description": "Drush commands to export D7 site structure.",
+  "description": "Drush commands to export D8 site structure.",
   "type": "drupal-drush",
   "keywords": ["drupal", "drush", "automation"],
   "require": {
-    "php": ">=5.6"
+    "php": "^7.1"
   },
   "require-dev": {
-    "drupal/coder": "^8.2",
-    "drupal/drupal": "^7.62",
-    "drush/drush": "^8.1.18",
+    "drush/drush": "^8.2 || ^9.0",
     "phpro/grumphp": "^0.14",
-    "squizlabs/php_codesniffer": "^2.9"
+    "webflo/drupal-core-require-dev": "^8.7.0",
+    "zaporylie/composer-drupal-optimizations": "^1.0"
   },
   "autoload": {
     "psr-4": {
@@ -21,7 +20,7 @@
   "repositories": [
     {
       "type": "composer",
-      "url": "https://packages.drupal.org/7"
+      "url": "https://packages.drupal.org/8"
     }
   ],
   "minimum-stability": "dev",
