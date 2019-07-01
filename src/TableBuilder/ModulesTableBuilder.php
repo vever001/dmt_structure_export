@@ -28,23 +28,34 @@ class ModulesTableBuilder extends TableBuilder {
    */
   public function buildRows() {
     $this->rows = [];
-    $extensions = drush_get_extensions(FALSE);
-    uasort($extensions, '_drush_pm_sort_extensions');
 
-    foreach ($extensions as $extension) {
-      $this->rows[] = [
-        'package' => $extension->info['package'],
-        'machine_name' => $extension->name,
+    $modules = \system_rebuild_module_data();
+    // @TODO Inject this?
+    $themes = \Drupal::service('theme_handler')->rebuildThemeData();
+    $both = array_merge($modules, $themes);
+
+    /** @var \Drupal\Core\Extension\Extension $extension */
+    foreach ($both as $key => $extension) {
+      $this->rows[$key] = [
+        'package' => $extension->info['package'] ?? '',
+        'machine_name' => $extension->getName(),
         'label' => $extension->info['name'],
-        'type' => ucfirst(drush_extension_get_type($extension)),
-        'status' => ucfirst(drush_get_extension_status($extension)),
-        'core' => $extension->info['core'],
+        'type' => $extension->getType(),
+        'status' => ucfirst($this->extensionStatus($extension)),
+        'core' => $extension->info['core'] ?? '',
         'version' => $extension->info['version'],
         'description' => $extension->info['description'],
       ];
     }
 
     return $this->rows;
+  }
+
+  /**
+   * Calculate an extension status based on current status and schema version.
+   */
+  public function extensionStatus($extension) {
+    return $extension->status == 1 ? 'enabled' : 'disabled';
   }
 
 }
