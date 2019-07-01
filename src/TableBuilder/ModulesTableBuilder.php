@@ -12,14 +12,14 @@ class ModulesTableBuilder extends TableBuilder {
    */
   public function __construct() {
     $this->header = [
-      'package' => dt('Package'),
-      'machine_name' => dt('Machine name'),
-      'label' => dt('Label'),
-      'type' => dt('Type'),
-      'status' => dt('Status'),
-      'core' => dt('Core version'),
-      'version' => dt('Version'),
-      'description' => dt('Description'),
+      'package' => $this->t('Package'),
+      'machine_name' => $this->t('Machine name'),
+      'label' => $this->t('Label'),
+      'type' => $this->t('Type'),
+      'status' => $this->t('Status'),
+      'core' => $this->t('Core version'),
+      'version' => $this->t('Version'),
+      'description' => $this->t('Description'),
     ];
   }
 

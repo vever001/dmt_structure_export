@@ -2,10 +2,14 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+
 /**
  * Class TableBuilder.
  */
 abstract class TableBuilder implements TableBuilderInterface {
+
+  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
