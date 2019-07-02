@@ -8,9 +8,9 @@ use Consolidation\OutputFormatters\Options\FormatterOptions;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drush\Commands\DrushCommands;
 use Drush\dmt_structure_export\TableBuilderManager;
-use Drush\Log\LogLevel;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Drush commands for DMT Structure Export.
@@ -67,7 +67,7 @@ class DmtStructureExportCommands extends DrushCommands {
       return new RowsOfFields($table);
     }
     catch (\Exception $e) {
-      drush_log($e->getMessage(), LogLevel::ERROR);
+      $this->logger()->error($e->getMessage());
     }
   }
 
@@ -98,10 +98,10 @@ class DmtStructureExportCommands extends DrushCommands {
         $file_path = $dst_dir . '/' . $export_type . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
         $this->formatData($output, 'csv', $data, new FormatterOptions());
-        drush_log(dt('Exported CSV file to @path', ['@path' => $file_path]), LogLevel::SUCCESS);
+        $this->logger()->success(dt('Exported CSV file to @path', ['@path' => $file_path]));
       }
       catch (\Exception $e) {
-        drush_log($e->getMessage(), LogLevel::ERROR);
+        $this->logger()->error($e->getMessage());
       }
     }
   }
@@ -133,13 +133,14 @@ class DmtStructureExportCommands extends DrushCommands {
 
     // Handle relative or absolute paths.
     if (strpos($dst_dir, '/') !== 0) {
-      $dst_dir = drush_cwd() . '/' . $dst_dir;
+      $dst_dir = $this->getConfig()->cwd() . '/' . $dst_dir;
     }
 
     // Create the destination dir if needed.
-    if (!is_dir($dst_dir)) {
-      drush_mkdir($dst_dir);
-      drush_log(dt('Directory @path was created', ['@path' => $dst_dir]), LogLevel::INFO);
+    $fs = new Filesystem();
+    if (!$fs->exists($dst_dir)) {
+      $fs->mkdir($dst_dir);
+      $this->logger()->info(dt('Directory @path was created', ['@path' => $dst_dir]));
     }
 
     return $dst_dir;

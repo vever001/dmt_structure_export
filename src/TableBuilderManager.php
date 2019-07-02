@@ -36,7 +36,8 @@ class TableBuilderManager {
     ];
 
     foreach ($defaultTableBuilders as $id => $classname) {
-      $tableBuilder = new $classname();
+      $container = \Drupal::getContainer();
+      $tableBuilder = $classname::create($container);
       $this->addTableBuilder($id, $tableBuilder);
     }
   }

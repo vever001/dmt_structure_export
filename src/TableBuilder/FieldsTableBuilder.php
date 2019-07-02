@@ -3,6 +3,7 @@
 namespace Drush\dmt_structure_export\TableBuilder;
 
 use Drush\dmt_structure_export\Utilities;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * FieldsTableBuilder class.
@@ -11,8 +12,13 @@ class FieldsTableBuilder extends TableBuilder {
 
   /**
    * FieldsTableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
    */
-  public function __construct() {
+  public function __construct(ContainerInterface $container) {
+    parent::__construct($container);
+
     $this->header = [
       'field_id' => dt('Field ID'),
       'field_name' => dt('Field name'),
@@ -23,6 +29,15 @@ class FieldsTableBuilder extends TableBuilder {
       'field_count' => dt('Field count'),
       'field_used_in' => dt('Used in'),
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container
+    );
   }
 
   /**

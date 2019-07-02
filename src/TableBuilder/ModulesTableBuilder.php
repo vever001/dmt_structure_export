@@ -2,15 +2,44 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\Extension\ModuleExtensionList;
+use Drupal\Core\Extension\ThemeHandlerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 /**
  * ModulesTableBuilder class.
  */
 class ModulesTableBuilder extends TableBuilder {
 
   /**
-   * ModulesTableBuilder constructor.
+   * Drupal\Core\Extension\ModuleExtensionList definition.
+   *
+   * @var \Drupal\Core\Extension\ModuleExtensionList
    */
-  public function __construct() {
+  protected $moduleExtensionList;
+
+  /**
+   * The theme handler.
+   *
+   * @var \Drupal\Core\Extension\ThemeHandler
+   */
+  protected $themeHandler;
+
+  /**
+   * ModulesTableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   * @param \Drupal\Core\Extension\ModuleExtensionList $module_extension_list
+   *   The module extension list.
+   * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
+   *   The theme handler.
+   */
+  public function __construct(ContainerInterface $container, ModuleExtensionList $module_extension_list, ThemeHandlerInterface $theme_handler) {
+    parent::__construct($container);
+    $this->moduleExtensionList = $module_extension_list;
+    $this->themeHandler = $theme_handler;
+
     $this->header = [
       'package' => $this->t('Package'),
       'machine_name' => $this->t('Machine name'),
@@ -26,12 +55,22 @@ class ModulesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container,
+      $container->get('extension.list.module'),
+      $container->get('theme_handler')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildRows() {
     $this->rows = [];
 
-    $modules = \system_rebuild_module_data();
-    // @TODO Inject this?
-    $themes = \Drupal::service('theme_handler')->rebuildThemeData();
+    $modules = $this->moduleExtensionList->reset()->getList();
+    $themes = $this->themeHandler->rebuildThemeData();
     $both = array_merge($modules, $themes);
 
     /** @var \Drupal\Core\Extension\Extension $extension */
@@ -41,7 +80,7 @@ class ModulesTableBuilder extends TableBuilder {
         'machine_name' => $extension->getName(),
         'label' => $extension->info['name'],
         'type' => $extension->getType(),
-        'status' => ucfirst($this->extensionStatus($extension)),
+        'status' => $extension->status ? 'Enabled' : 'Disabled',
         'core' => $extension->info['core'] ?? '',
         'version' => $extension->info['version'],
         'description' => $extension->info['description'],
@@ -49,13 +88,6 @@ class ModulesTableBuilder extends TableBuilder {
     }
 
     return $this->rows;
-  }
-
-  /**
-   * Calculate an extension status based on current status and schema version.
-   */
-  public function extensionStatus($extension) {
-    return $extension->status == 1 ? 'enabled' : 'disabled';
   }
 
 }

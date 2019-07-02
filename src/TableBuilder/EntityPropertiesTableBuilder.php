@@ -2,7 +2,10 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drush\dmt_structure_export\Utilities;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * EntityPropertiesTableBuilder class.
@@ -10,9 +13,34 @@ use Drush\dmt_structure_export\Utilities;
 class EntityPropertiesTableBuilder extends TableBuilder {
 
   /**
-   * EntityPropertiesTableBuilder constructor.
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  public function __construct() {
+  protected $entityTypeManager;
+
+  /**
+   * The entity bundle info.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $entityTypeBundleInfo;
+
+  /**
+   * EntityPropertiesTableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info service.
+   */
+  public function __construct(ContainerInterface $container, EntityTypeManagerInterface $entityTypeManager, EntityTypeBundleInfoInterface $entity_type_bundle_info) {
+    parent::__construct($container);
+    $this->entityTypeManager = $entityTypeManager;
+    $this->entityTypeBundleInfo = $entity_type_bundle_info;
+
     $this->header = [
       // Entity data.
       'entity' => dt('Entity type'),
@@ -32,6 +60,17 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container,
+      $container->get('entity_type.manager'),
+      $container->get('entity_type.bundle.info')
+    );
   }
 
   /**

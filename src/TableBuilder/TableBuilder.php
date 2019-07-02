@@ -2,13 +2,17 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class TableBuilder.
  */
-abstract class TableBuilder implements TableBuilderInterface {
+abstract class TableBuilder implements TableBuilderInterface, ContainerInjectionInterface {
 
+  use ContainerAwareTrait;
   use StringTranslationTrait;
 
   /**
@@ -20,6 +24,16 @@ abstract class TableBuilder implements TableBuilderInterface {
    * {@inheritdoc}
    */
   protected $rows = [];
+
+  /**
+   * TableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   */
+  public function __construct(ContainerInterface $container) {
+    $this->container = $container;
+  }
 
   /**
    * {@inheritdoc}

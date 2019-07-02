@@ -2,7 +2,13 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drush\dmt_structure_export\Utilities;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * EntityBundlesTableBuilder class.
@@ -10,9 +16,44 @@ use Drush\dmt_structure_export\Utilities;
 class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
-   * EntityBundlesTableBuilder constructor.
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
    */
-  public function __construct() {
+  protected $moduleHandler;
+
+  /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The entity bundle info.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $entityTypeBundleInfo;
+
+  /**
+   * EntityBundlesTableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info service.
+   */
+  public function __construct(ContainerInterface $container, ModuleHandlerInterface $moduleHandler, EntityTypeManagerInterface $entityTypeManager, EntityTypeBundleInfoInterface $entity_type_bundle_info) {
+    parent::__construct($container);
+    $this->moduleHandler = $moduleHandler;
+    $this->entityTypeManager = $entityTypeManager;
+    $this->entityTypeBundleInfo = $entity_type_bundle_info;
+
     $this->header = [
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
@@ -22,8 +63,20 @@ class EntityBundlesTableBuilder extends TableBuilder {
       'multilingual_type' => dt('Multilingual type'),
       'comment_settings' => dt('Comment settings'),
       'revisions_enabled' => dt('Revisions enabled'),
-      'moderation_enabled' => dt('Workbench moderation enabled'),
+      'moderation_enabled' => dt('Content moderation enabled'),
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container,
+      $container->get('module_handler'),
+      $container->get('entity_type.manager'),
+      $container->get('entity_type.bundle.info')
+    );
   }
 
   /**
@@ -31,43 +84,63 @@ class EntityBundlesTableBuilder extends TableBuilder {
    */
   public function buildRows() {
     $this->rows = [];
-    $entity_info = entity_get_info();
 
-    foreach ($entity_info as $entity_type => $et_info) {
-      $has_bundles = !empty($et_info['bundles']) && count($et_info['bundles']) > 1;
+    $entity_definitions = $this->entityTypeManager->getDefinitions();
+    foreach ($entity_definitions as $entity_type => $entity_definition) {
+      $bundles = $this->entityTypeBundleInfo->getBundleInfo($entity_type);
+      $bundle_key = $entity_definition->getKey('bundle');
+      $has_bundles = !empty($bundles) && count($bundles) > 1 && !empty($bundle_key);
+
       $entity_row = [
-        'entity' => $et_info['label'] . ' (' . $entity_type . ')',
+        'entity' => $entity_definition->getLabel() . ' (' . $entity_type . ')',
         'entity_count' => Utilities::getEntityDataCount($entity_type),
       ];
 
       if (!$has_bundles) {
         // Multilingual settings.
-        $multilingual_type = $this->getEntityTranslationType($entity_type);
-        $entity_row['multilingual_enabled'] = $multilingual_type ? 'TRUE' : 'FALSE';
-        $entity_row['multilingual_type'] = $multilingual_type;
+        $translation_enabled = $this->isContentTranslationEnabled($entity_type);
+        $entity_row['multilingual_enabled'] = $translation_enabled ? 'TRUE' : 'FALSE';
+        if ($translation_enabled) {
+          $entity_row['multilingual_type'] = $this->t('Enabled, with field translation (content_translation)');
+        }
+
+        // Content moderation settings.
+        $moderation_enabled = !empty(array_column($bundles, 'workflow'));
+        $entity_row['moderation_enabled'] = $moderation_enabled ? 'TRUE' : 'FALSE';
+
+        // Revision settings.
+        $entity_row['revisions_enabled'] = $moderation_enabled || $entity_definition->hasKey('revision') ? 'TRUE' : 'FALSE';
+
+        // Comment settings.
+        $entity_row['comment_settings'] = $this->getCommentSettings($entity_type);
       }
 
       $this->rows[] = $entity_row;
 
       // Process bundles.
       if ($has_bundles) {
-        foreach ($et_info['bundles'] as $bundle => $bundle_info) {
+        foreach ($bundles as $bundle_id => $bundle_info) {
           $bundle_row = [
-            'bundle' => $bundle_info['label'] . ' (' . $bundle . ')',
-            'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle),
+            'bundle' => $bundle_info['label'] . ' (' . $bundle_id . ')',
+            'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle_id),
           ];
 
           // Multilingual settings.
-          $multilingual_type = $this->getEntityTranslationType($entity_type, $bundle);
-          $bundle_row['multilingual_enabled'] = $multilingual_type ? 'TRUE' : 'FALSE';
-          $bundle_row['multilingual_type'] = $multilingual_type;
-
-          // Entity type specific process.
-          switch ($entity_type) {
-            case 'node':
-              $bundle_row += $this->buildNodeBundleRow($bundle);
-              break;
+          $translation_enabled = $this->isContentTranslationEnabled($entity_type, $bundle_id);
+          $bundle_row['multilingual_enabled'] = $translation_enabled ? 'TRUE' : 'FALSE';
+          if ($translation_enabled) {
+            $bundle_row['multilingual_type'] = $this->t('Enabled, with field translation (content_translation)');
           }
+
+          // Content moderation settings.
+          $moderation_enabled = !empty($bundle_info['workflow']);
+          $bundle_row['moderation_enabled'] = $moderation_enabled ? 'TRUE' : 'FALSE';
+
+          // Revision settings.
+          $bundle_row['revisions_enabled'] = $moderation_enabled || $entity_definition->hasKey('revision') ? 'TRUE' : 'FALSE';
+
+          // Comment settings.
+          $bundle_row['comment_settings'] = $this->getCommentSettings($entity_type, $bundle_id);
 
           $this->rows[] = $bundle_row;
         }
@@ -78,117 +151,54 @@ class EntityBundlesTableBuilder extends TableBuilder {
   }
 
   /**
-   * Process a node bundle row.
+   * Returns whether content_translation is enabled for the given entity type.
    */
-  protected function buildNodeBundleRow($bundle) {
-    $row = [];
-
-    // Comments.
-    if (module_exists('comment')) {
-      $comment_enabled = variable_get('comment_' . $bundle, COMMENT_NODE_OPEN);
-      $comment_enabled_options = [
-        COMMENT_NODE_OPEN => dt('Open'),
-        COMMENT_NODE_CLOSED => dt('Closed'),
-        COMMENT_NODE_HIDDEN => dt('Hidden'),
-      ];
-      $row['comment_settings'] = isset($comment_enabled_options[$comment_enabled]) ? $comment_enabled_options[$comment_enabled] : dt('Unknown');
-    }
-
-    // Revisions.
-    $node_options = variable_get('node_options_' . $bundle, [
-      'status',
-      'promote',
-    ]);
-    $row['revisions_enabled'] = in_array('revision', $node_options) ? 'TRUE' : 'FALSE';
-
-    // Moderation.
-    if (module_exists('workbench_moderation')) {
-      $row['moderation_enabled'] = workbench_moderation_node_type_moderated($bundle) ? 'TRUE' : 'FALSE';
-    }
-
-    return $row;
-  }
-
-  /**
-   * Returns the translation type/handler for the given entity type.
-   */
-  protected function getEntityTranslationType($entity_type, $bundle = NULL) {
-    switch ($entity_type) {
-      case 'node':
-        return $this->getEntityTranslationTypeNode($bundle);
-
-      case 'taxonomy_term':
-        return $this->getEntityTranslationTypeTaxonomyTerm($bundle);
-
-      default:
-        return $this->getEntityTranslationTypeEntityTranslation($entity_type, $bundle);
-    }
-  }
-
-  /**
-   * Returns the translation type/handler for a given node bundle.
-   */
-  protected function getEntityTranslationTypeNode($bundle) {
-    $multilingual_type = variable_get('language_content_type_' . $bundle, 0);
-    if ($multilingual_type) {
-      $multilingual_type_options = [
-        1 => dt('Enabled (no translations)'),
-        TRANSLATION_ENABLED => dt('Enabled, with translation (translation module)'),
-        ENTITY_TRANSLATION_ENABLED => dt('Enabled, with field translation (entity_translation module)'),
-      ];
-      return isset($multilingual_type_options[$multilingual_type]) ? $multilingual_type_options[$multilingual_type] : dt('Unknown');
-    }
-  }
-
-  /**
-   * Returns the translation type/handler for a given taxonomy_term bundle.
-   */
-  protected function getEntityTranslationTypeTaxonomyTerm($bundle) {
-    if ($multilingual_type = $this->getEntityTranslationTypeTaxonomyTermI18n($bundle)) {
-      return $multilingual_type;
-    }
-    elseif ($multilingual_type = $this->getEntityTranslationTypeEntityTranslation('taxonomy_term', $bundle)) {
-      return $multilingual_type;
-    }
-  }
-
-  /**
-   * Returns the entity_translation type/handler for a given entity type.
-   */
-  protected function getEntityTranslationTypeEntityTranslation($entity_type, $bundle = NULL) {
-    if (!module_exists('entity_translation') || !entity_translation_enabled($entity_type)) {
+  protected function isContentTranslationEnabled($entity_type, $bundle = NULL) {
+    if (!$this->moduleHandler->moduleExists('content_translation')) {
       return FALSE;
     }
 
-    if (!empty($bundle) && !entity_translation_enabled_bundle($entity_type, $bundle)) {
-      return FALSE;
-    }
-
-    return dt('Enabled, with field translation (entity_translation module)');
+    /** @var \Drupal\content_translation\ContentTranslationManagerInterface $content_translation_manager */
+    $content_translation_manager = $this->container->get('content_translation.manager');
+    return $content_translation_manager->isEnabled($entity_type, $bundle);
   }
 
   /**
-   * Returns the i18n translation type for a given vocabulary.
+   * Returns the comment settings for the given entity type and bundle.
    */
-  protected function getEntityTranslationTypeTaxonomyTermI18n($vocabulary_name) {
-    if (module_exists('i18n_taxonomy')) {
-      $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary_name);
-      if ($vocabulary) {
-        $multilingual_type = i18n_taxonomy_vocabulary_mode($vocabulary->vid);
-        if ($multilingual_type) {
-          $multilingual_type_options = [
-            I18N_MODE_LOCALIZE => dt('Localize (i18n_taxonomy module)'),
-            I18N_MODE_TRANSLATE => dt('Translate (i18n_taxonomy module)'),
-            I18N_MODE_MULTIPLE => dt('Translate and Localize (i18n_taxonomy module)'),
-            I18N_MODE_LANGUAGE => dt('Fixed Language (i18n_taxonomy module)'),
-            I18N_MODE_ENTITY_TRANSLATION => dt('Enabled, with field translation (entity_translation module)'),
-          ];
-          return isset($multilingual_type_options[$multilingual_type]) ? $multilingual_type_options[$multilingual_type] : dt('Unknown');
-        }
+  protected function getCommentSettings($entity_type, $bundle = NULL) {
+    if (!$this->moduleHandler->moduleExists('comment')) {
+      return;
+    }
+
+    $entity_type_definition = $this->entityTypeManager->getDefinition($entity_type);
+    if (!$entity_type_definition->entityClassImplements(FieldableEntityInterface::class)) {
+      return;
+    }
+
+    /** @var \Drupal\Core\Entity\EntityFieldManager $entity_field_manager */
+    $entity_field_manager = $this->container->get('entity_field.manager');
+    $entity_fields = $entity_field_manager->getFieldDefinitions($entity_type, $bundle);
+    $comment_options = [
+      CommentItemInterface::HIDDEN => $this->t('Hidden'),
+      CommentItemInterface::CLOSED => $this->t('Closed'),
+      CommentItemInterface::OPEN => $this->t('Open'),
+    ];
+
+    $comment_manager = $this->container->get('comment.manager');
+    $comment_fields = $comment_manager->getFields($entity_type);
+    $comment_settings = [];
+    foreach ($comment_fields as $comment_field => $comment_field_settings) {
+      if (isset($entity_fields[$comment_field])) {
+        /** @var \Drupal\field\Entity\FieldConfig $entity_field */
+        $entity_field = $entity_fields[$comment_field];
+        $comment_status = $entity_field->getDefaultValueLiteral()[0]['status'];
+        $comment_status = $comment_options[$comment_status] ?? $this->t('Unknown');
+        $comment_settings[] = sprintf('%s (%s)', $comment_field, $comment_status);
       }
     }
 
-    return FALSE;
+    return implode(', ', $comment_settings);
   }
 
 }

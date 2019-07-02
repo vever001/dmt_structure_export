@@ -2,6 +2,8 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 /**
  * TaxonomyTermsTableBuilder class.
  */
@@ -9,14 +11,28 @@ class TaxonomyTermsTableBuilder extends TableBuilder {
 
   /**
    * TaxonomyTermsTableBuilder constructor.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
    */
-  public function __construct() {
+  public function __construct(ContainerInterface $container) {
+    parent::__construct($container);
+
     $this->header = [
       'machine_name' => dt('Vocabulary'),
       'tid' => dt('Term ID'),
       'name' => dt('Term name'),
       'term_description' => dt('Term description'),
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container
+    );
   }
 
   /**

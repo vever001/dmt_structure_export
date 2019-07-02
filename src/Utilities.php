@@ -21,18 +21,24 @@ class Utilities {
    *   The result from the EntityFieldQuery count.
    */
   public static function getEntityDataCount($entity_type, $bundle = NULL) {
-    if ($entity_type === 'comment' && !empty($bundle)) {
+    if ($entity_type === 'rdf_entity') {
+      // Skip for rdf_entity (bug?).
+      // TypeError: Return value of Drupal\rdf_entity\RdfGraphHandler::
+      // getEntityTypeGraphUris() must be of the type array, null returned
+      // in Drupal\rdf_entity\RdfGraphHandler->getEntityTypeGraphUris()
+      // (line 164 of rdf_entity/src/RdfGraphHandler.php).
       return 'Unavailable';
     }
 
-    $query = new \EntityFieldQuery();
-    $query->entityCondition('entity_type', $entity_type);
-
+    $query = \Drupal::entityQuery($entity_type);
     if (!empty($bundle)) {
-      $query->entityCondition('bundle', $bundle);
+      $entity_type = \Drupal::entityManager()->getDefinition($entity_type);
+      if ($bundle_key = $entity_type->getKey('bundle')) {
+        $query->condition($bundle_key, $bundle);
+      }
     }
 
-    $query->addMetaData('account', user_load(1));
+    $query->accessCheck(FALSE);
     return (int) $query->count()->execute();
   }
 
