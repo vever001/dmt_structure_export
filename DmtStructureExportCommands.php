@@ -24,6 +24,8 @@ class DmtStructureExportCommands extends DrushCommands {
 
   /**
    * Autoload our files if they are not already loaded.
+   *
+   * @hook init
    */
   public function init() {
     if (!class_exists(TableBuilderManager::class)) {
@@ -58,7 +60,6 @@ class DmtStructureExportCommands extends DrushCommands {
    */
   public function export($export_type, array $options = ['format' => 'csv']) {
     try {
-      $this->init();
       $manager = new TableBuilderManager();
       $table_builder = $manager->getTableBuilder($export_type);
       $table_builder->buildRows();
@@ -83,7 +84,6 @@ class DmtStructureExportCommands extends DrushCommands {
    * @bootstrap DRUSH_BOOTSTRAP_DRUPAL_FULL
    */
   public function exportAll(array $options = ['destination' => '', 'format' => 'csv']) {
-    $this->init();
     $dst_dir = $this->getDestinationDirectory($options['destination']);
     $manager = new TableBuilderManager();
     $exports = $manager->getTableBuilders();
