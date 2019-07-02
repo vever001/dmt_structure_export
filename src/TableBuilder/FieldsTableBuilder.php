@@ -2,6 +2,8 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drush\dmt_structure_export\Utilities;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -11,24 +13,23 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class FieldsTableBuilder extends TableBuilder {
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * FieldsTableBuilder constructor.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
    *   The service container.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(ContainerInterface $container) {
+  public function __construct(ContainerInterface $container, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($container);
-
-    $this->header = [
-      'field_id' => dt('Field ID'),
-      'field_name' => dt('Field name'),
-      'field_type' => dt('Field type'),
-      'field_module' => dt('Field module'),
-      'field_cardinality' => dt('Field cardinality'),
-      'field_translatable' => dt('Translatable'),
-      'field_count' => dt('Field count'),
-      'field_used_in' => dt('Used in'),
-    ];
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -36,43 +37,57 @@ class FieldsTableBuilder extends TableBuilder {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container
+      $container,
+      $container->get('entity_type.manager')
     );
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildRows() {
+  protected function buildHeader() {
+    $this->header = [
+      'field_id' => dt('Field ID'),
+      'field_name' => dt('Field name'),
+      'field_entity_type' => dt('Entity type'),
+      'field_type' => dt('Field type'),
+      'field_module' => dt('Field module'),
+      'field_cardinality' => dt('Field cardinality'),
+      'field_translatable' => dt('Translatable'),
+      'field_count' => dt('Field count'),
+      'field_used_in' => dt('Used in'),
+    ];
+    return $this->header;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function buildRows() {
     $this->rows = [];
 
-    $fields = field_info_fields();
-    foreach ($fields as $field_id => $field_info) {
-      if (!empty($field_info['bundles'])) {
-        $row = [
-          'field_id' => $field_info['id'],
-          'field_name' => $field_info['field_name'],
-          'field_type' => $field_info['type'],
-          'field_module' => $field_info['module'],
-          'field_cardinality' => ($field_info['cardinality'] == -1 ? 'UNLIMITED' : $field_info['cardinality']),
-          'field_translatable' => $field_info['translatable'] ? 'YES' : 'NO',
-        ];
+    $field_storage_configs = $this->entityTypeManager->getStorage('field_storage_config')->loadMultiple();
 
-        $column = current(array_keys($field_info['columns']));
-        $entity_types = array_keys($field_info['bundles']);
-        $row['field_count'] = Utilities::getEntityPropertyDataCount($field_id, $column, $entity_types);
+    /** @var \Drupal\field\FieldStorageConfigInterface $field_storage */
+    foreach ($field_storage_configs as $field_storage) {
+      $row = [];
+      $row['field_id'] = $field_storage->id();
+      $field_name = $field_storage->getName();
+      $row['field_name'] = $field_name;
+      $field_entity_type = $field_storage->getTargetEntityTypeId();
+      $row['field_entity_type'] = $field_entity_type;
+      $row['field_type'] = $field_storage->getType();
+      $row['field_module'] = $field_storage->getTypeProvider();
+      $cardinality = $field_storage->getCardinality();
+      $row['field_cardinality'] = $cardinality === FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED ? 'UNLIMITED' : $cardinality;
+      $row['field_translatable'] = $field_storage->isTranslatable() ? 'TRUE' : 'FALSE';
+      $column = current(array_keys($field_storage->getColumns()));
+      $field_condition = $field_name;
+      $field_condition .= !empty($column) ? ".$column" : '';
+      $row['field_count'] = Utilities::getEntityPropertyDataCount($field_entity_type, $field_condition);
+      $row['field_used_in'] = implode(', ', $field_storage->getBundles());
 
-        $used_in_array = [];
-        foreach ($field_info['bundles'] as $entity => $bundles) {
-          $used_in_array[] = dt('@entity (@bundles)', [
-            '@entity' => $entity,
-            '@bundles' => implode(', ', $bundles),
-          ]);
-        }
-        $row['field_used_in'] = implode(', ', $used_in_array);
-
-        $this->rows[] = $row;
-      }
+      $this->rows[] = $row;
     }
 
     return $this->rows;

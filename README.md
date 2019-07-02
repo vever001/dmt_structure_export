@@ -10,7 +10,6 @@ The `dmt-se:export-all` command will run all exports and generate CSV files:
 - `entity_properties.csv`: All entity properties for each entity type and bundle
 - `fields.csv`: All field bases
 - `modules.csv`: The list of modules
-- `taxonomy_terms.csv`: All taxonomy terms (with language_none/und or EN)
 
 # Requirements
 

@@ -53,18 +53,6 @@ class EntityBundlesTableBuilder extends TableBuilder {
     $this->moduleHandler = $moduleHandler;
     $this->entityTypeManager = $entityTypeManager;
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
-
-    $this->header = [
-      'entity' => dt('Entity type'),
-      'entity_count' => dt('Entity count'),
-      'bundle' => dt('Bundle'),
-      'bundle_count' => dt('Bundle count'),
-      'multilingual_enabled' => dt('Multilingual enabled'),
-      'multilingual_type' => dt('Multilingual type'),
-      'comment_settings' => dt('Comment settings'),
-      'revisions_enabled' => dt('Revisions enabled'),
-      'moderation_enabled' => dt('Content moderation enabled'),
-    ];
   }
 
   /**
@@ -82,7 +70,25 @@ class EntityBundlesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildRows() {
+  protected function buildHeader() {
+    $this->header = [
+      'entity' => dt('Entity type'),
+      'entity_count' => dt('Entity count'),
+      'bundle' => dt('Bundle'),
+      'bundle_count' => dt('Bundle count'),
+      'multilingual_enabled' => dt('Multilingual enabled'),
+      'multilingual_type' => dt('Multilingual type'),
+      'comment_settings' => dt('Comment settings'),
+      'revisions_enabled' => dt('Revisions enabled'),
+      'moderation_enabled' => dt('Content moderation enabled'),
+    ];
+    return $this->header;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function buildRows() {
     $this->rows = [];
 
     $entity_definitions = $this->entityTypeManager->getDefinitions();

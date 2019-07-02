@@ -62,7 +62,7 @@ class DmtStructureExportCommands extends DrushCommands {
     try {
       $manager = new TableBuilderManager();
       $table_builder = $manager->getTableBuilder($export_type);
-      $table_builder->buildRows();
+      $table_builder->build();
       $table = $table_builder->getTable();
       return new RowsOfFields($table);
     }
@@ -91,7 +91,7 @@ class DmtStructureExportCommands extends DrushCommands {
     foreach ($exports as $export_type => $table_builder) {
       try {
         // Build table.
-        $table_builder->buildRows();
+        $table_builder->build();
         $data = new RowsOfFields($table_builder->getTable());
 
         // Write to CSV.

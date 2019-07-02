@@ -32,7 +32,7 @@ class Utilities {
 
     $query = \Drupal::entityQuery($entity_type);
     if (!empty($bundle)) {
-      $entity_type = \Drupal::entityManager()->getDefinition($entity_type);
+      $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type);
       if ($bundle_key = $entity_type->getKey('bundle')) {
         $query->condition($bundle_key, $bundle);
       }
@@ -45,36 +45,40 @@ class Utilities {
   /**
    * Returns the amount/count of values in DB for the given property/field.
    *
-   * @param string $property_name
+   * @param string $entity_type
+   *   The entity type.
+   * @param string $field
    *   The property/field name.
-   * @param string $column
-   *   The property/field column name.
-   * @param string|array $entity_types
-   *   (Optional) The entity type or an array of entity types.
-   * @param string $bundles
-   *   (Optional) The entity bundle or an array of entity bundles.
+   * @param string $bundle
+   *   (Optional) The entity bundle.
    *
    * @return int
    *   The result from the EntityFieldQuery count.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public static function getEntityPropertyDataCount($property_name, $column, $entity_types, $bundles = NULL) {
-    if ($entity_types === 'comment' && !empty($bundles)) {
+  public static function getEntityPropertyDataCount($entity_type, $field, $bundle = NULL) {
+    if ($entity_type === 'rdf_entity') {
+      // Skip for rdf_entity (bug?).
+      // TypeError: Return value of Drupal\rdf_entity\RdfGraphHandler::
+      // getEntityTypeGraphUris() must be of the type array, null returned
+      // in Drupal\rdf_entity\RdfGraphHandler->getEntityTypeGraphUris()
+      // (line 164 of rdf_entity/src/RdfGraphHandler.php).
       return 'Unavailable';
     }
 
-    $query = new \EntityFieldQuery();
-    $query->entityCondition('entity_type', $entity_types, is_array($entity_types) ? 'IN' : '=');
+    $query = \Drupal::entityQuery($entity_type);
 
-    if (!empty($bundles)) {
-      $entity_type = is_array($entity_types) ? current($entity_types) : $entity_types;
-      $entity_info = entity_get_info($entity_type);
-      if (count($entity_info['bundles']) > 1) {
-        $query->entityCondition('bundle', $bundles, is_array($bundles) ? 'IN' : '=');
+    if (!empty($bundle)) {
+      $entity_type = \Drupal::entityTypeManager()
+        ->getDefinition($entity_type);
+      if ($bundle_key = $entity_type->getKey('bundle')) {
+        $query->condition($bundle_key, $bundle);
       }
     }
 
-    $query->fieldCondition($property_name, $column, NULL, 'IS NOT');
-    $query->addMetaData('account', user_load(1));
+    $query->condition($field, NULL, 'IS NOT');
+    $query->accessCheck(FALSE);
     return (int) $query->count()->execute();
   }
 

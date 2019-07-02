@@ -2,8 +2,13 @@
 
 namespace Drush\dmt_structure_export\TableBuilder;
 
+use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\field\FieldStorageConfigInterface;
 use Drush\dmt_structure_export\Utilities;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,6 +32,13 @@ class EntityPropertiesTableBuilder extends TableBuilder {
   protected $entityTypeBundleInfo;
 
   /**
+   * The entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
    * EntityPropertiesTableBuilder constructor.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
@@ -35,12 +47,32 @@ class EntityPropertiesTableBuilder extends TableBuilder {
    *   The entity type manager.
    * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
    *   The entity type bundle info service.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The entity field manager service.
    */
-  public function __construct(ContainerInterface $container, EntityTypeManagerInterface $entityTypeManager, EntityTypeBundleInfoInterface $entity_type_bundle_info) {
+  public function __construct(ContainerInterface $container, EntityTypeManagerInterface $entityTypeManager, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityFieldManagerInterface $entity_field_manager) {
     parent::__construct($container);
     $this->entityTypeManager = $entityTypeManager;
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
+    $this->entityFieldManager = $entity_field_manager;
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container,
+      $container->get('entity_type.manager'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('entity_field.manager')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function buildHeader() {
     $this->header = [
       // Entity data.
       'entity' => dt('Entity type'),
@@ -60,96 +92,180 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
     ];
+    return $this->header;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container,
-      $container->get('entity_type.manager'),
-      $container->get('entity_type.bundle.info')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function buildRows() {
+  protected function buildRows() {
     $this->rows = [];
-    $entity_info = entity_get_info();
+    $rows = $this->buildEntityRows();
+    $this->rows = $this->flattenRows($rows);
+    return $this->rows;
+  }
 
-    foreach ($entity_info as $entity_type => $et_info) {
-      // Entity data.
-      $entity_row = [
-        'entity' => $et_info['label'] . ' (' . $entity_type . ')',
-        'entity_count' => Utilities::getEntityDataCount($entity_type),
-      ];
-      $this->rows[] = $entity_row;
+  /**
+   * Builds all entity rows.
+   */
+  protected function buildEntityRows() {
+    $row = [];
+    $entity_definitions = $this->entityTypeManager->getDefinitions();
+    foreach ($entity_definitions as $entity_type => $entity_definition) {
+      $row[$entity_type] = $this->buildEntityRow($entity_type);
+    }
+    return $row;
+  }
 
-      if (!empty($et_info['bundles'])) {
-        foreach ($et_info['bundles'] as $bundle => $bundle_info) {
-          if (count($et_info['bundles']) > 1) {
-            $bundle_row = [
-              'bundle' => $bundle_info['label'] . ' (' . $bundle . ')',
-              'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle),
-            ];
-            $this->rows[] = $bundle_row;
+  /**
+   * Builds an entity row.
+   */
+  protected function buildEntityRow($entity_type) {
+    $row = [];
+    $row['entity'] = $entity_type;
+    $row['entity_count'] = Utilities::getEntityDataCount($entity_type);
+    $row['bundles'] = $this->buildEntityBundleRows($entity_type);
+    return $row;
+  }
+
+  /**
+   * Builds all entity bundle rows.
+   */
+  protected function buildEntityBundleRows($entity_type) {
+    $row = [];
+    $bundles = $this->entityTypeBundleInfo->getBundleInfo($entity_type);
+    foreach ($bundles as $bundle_id => $bundle_label) {
+      $row[$bundle_id] = $this->buildEntityBundleRow($entity_type, $bundle_id);
+    }
+    return $row;
+  }
+
+  /**
+   * Builds an entity bundle row.
+   */
+  protected function buildEntityBundleRow($entity_type, $bundle_id) {
+    $row = [];
+    $row['bundle'] = $bundle_id;
+    $row['bundle_count'] = Utilities::getEntityDataCount($entity_type, $bundle_id);
+    $row['bundle_properties'] = $this->buildEntityBundlePropertyRows($entity_type, $bundle_id);
+    return $row;
+  }
+
+  /**
+   * Builds all entity bundle properties rows.
+   */
+  protected function buildEntityBundlePropertyRows($entity_type, $bundle_id) {
+    $row = [];
+    $entity_definitions = $this->entityTypeManager->getDefinitions();
+    $entity_definition = $entity_definitions[$entity_type];
+
+    if ($entity_definition->entityClassImplements(FieldableEntityInterface::class)) {
+      $fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle_id);
+      foreach ($fields as $field) {
+        // Skip computed fields.
+        if ($field->isComputed()) {
+          continue;
+        }
+
+        $field_storage = $field->getFieldStorageDefinition();
+        $field_name = $field->getName();
+        $field_entity_type = $field->getTargetEntityTypeId();
+
+        $property_row = [];
+        $property_row['property_id'] = $field_name;
+        $property_row['property_label'] = $field->getLabel();
+        $property_row['property_type'] = $field->getType();
+        $property_row['property_translatable'] = $field->isTranslatable() ? 'TRUE' : 'FALSE';
+        $property_row['property_required'] = $field->isRequired() ? 'TRUE' : 'FALSE';
+        $is_field = $field_storage instanceof FieldStorageConfigInterface;
+        $property_row['property_field'] = $is_field ? 'TRUE' : 'FALSE';
+        $property_row['property_field_type'] = $field->getType();
+
+        if ($is_field) {
+          $property_row['property_field_module'] = $field_storage->getTypeProvider();
+        }
+
+        $cardinality = $field_storage->getCardinality();
+        $property_row['property_field_cardinality'] = $cardinality === FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED ? 'UNLIMITED' : $cardinality;
+
+        $field_columns = $field_storage->getColumns();
+        foreach ($field_columns as $field_column => $field_column_info) {
+          $property_column_row = $property_row;
+          $property_column_row['property_id'] = $field_name . '/' . $field_column;
+          $property_column_row['property_label'] = $field->getLabel() . ' / ' . $field_column;
+          $property_column_row['property_type'] = $field_column_info['type'];
+
+          if ($field_storage->hasCustomStorage()) {
+            $field_condition = $field_name . '.' . $field_column;
+            $property_column_row['property_count'] = Utilities::getEntityPropertyDataCount($field_entity_type, $field_condition, $bundle_id);
           }
 
-          // Property data.
-          $wrapper = entity_metadata_wrapper($entity_type, NULL, ['bundle' => $bundle]);
-          $entity_properties = $wrapper->getPropertyInfo();
-          foreach ($entity_properties as $property_id => $property_info) {
-            $this->buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle);
+          $row[$field_name . '.' . $field_column] = $property_column_row;
+        }
+      }
+    }
+    elseif ($entity_definition instanceof ConfigEntityTypeInterface) {
+      $properties = $entity_definition->getPropertiesToExport();
+      if ($properties) {
+        foreach ($properties as $property) {
+          if (!in_array($property, [
+            '_core',
+            'third_party_settings',
+            'dependencies',
+            'status',
+          ])) {
+            $property_row = [];
+            $property_row['property_id'] = $property;
+            $property_row['property_label'] = $property;
+            $row[$property] = $property_row;
           }
         }
       }
     }
 
-    return $this->rows;
+    return $row;
   }
 
   /**
-   * Process a single entity property.
+   * Flattens an array of rows.
    */
-  protected function buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle) {
-    // Do not export read only properties.
-    if (!empty($property_info['computed'])) {
-      return;
+  protected function flattenRows(array $rows) {
+    $result = [];
+    foreach ($rows as $row) {
+      $this->flattenRow($row, $result);
     }
+    return $result;
+  }
 
-    $row = [
-      'property_id' => $property_id,
-      'property_label' => $property_info['label'],
-      'property_type' => $property_info['type'],
-      'property_translatable' => $property_info['translatable'] ? 'YES' : 'NO',
-      'property_required' => $property_info['required'] ? 'YES' : 'NO',
-    ];
-
-    // Field data.
-    $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
-    if (!empty($property_info['field'])) {
-      $field_base = field_info_field($property_id);
-      $row['property_field_type'] = $field_base['type'];
-      $row['property_field_module'] = $field_base['module'];
-      $row['property_field_cardinality'] = ($field_base['cardinality'] == -1 ? 'UNLIMITED' : $field_base['cardinality']);
-
-      foreach ($field_base['columns'] as $column_id => $column_info) {
-        // Add field column row.
-        $this->rows[] = array_merge($row, [
-          'property_id' => $property_id . '/' . $column_id,
-          'property_label' => $property_info['label'] . ' / ' . $column_id,
-          'property_type' => $column_info['type'],
-          'property_count' => Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle),
-        ]);
+  /**
+   * Flattens a single row.
+   *
+   * Rows may contain nested arrays (unlimited depth), which will be appended
+   * and flattened to the $result array.
+   */
+  protected function flattenRow(array $row, &$result) {
+    $new_row = [];
+    $nested_array_keys = [];
+    foreach ($row as $key => $value) {
+      if (!is_array($value)) {
+        $new_row[$key] = $value;
+      }
+      else {
+        $nested_array_keys[] = $key;
       }
     }
-    else {
-      // Add property row.
-      $this->rows[] = $row;
+
+    if (!empty($new_row)) {
+      $result[] = $new_row;
     }
+
+    if (!empty($nested_array_keys)) {
+      foreach ($nested_array_keys as $key) {
+        $this->flattenRow($row[$key], $result);
+      }
+    }
+
+    return $result;
   }
 
 }

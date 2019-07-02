@@ -32,7 +32,6 @@ class TableBuilderManager {
       'entity_properties' => '\Drush\dmt_structure_export\TableBuilder\EntityPropertiesTableBuilder',
       'fields' => '\Drush\dmt_structure_export\TableBuilder\FieldsTableBuilder',
       'modules' => '\Drush\dmt_structure_export\TableBuilder\ModulesTableBuilder',
-      'taxonomy_terms' => '\Drush\dmt_structure_export\TableBuilder\TaxonomyTermsTableBuilder',
     ];
 
     foreach ($defaultTableBuilders as $id => $classname) {

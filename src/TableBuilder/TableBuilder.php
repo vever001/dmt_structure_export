@@ -80,4 +80,22 @@ abstract class TableBuilder implements TableBuilderInterface, ContainerInjection
     return $table;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function build() {
+    $this->buildHeader();
+    $this->buildRows();
+  }
+
+  /**
+   * Builds the header array.
+   */
+  abstract protected function buildHeader();
+
+  /**
+   * Builds the rows array.
+   */
+  abstract protected function buildRows();
+
 }

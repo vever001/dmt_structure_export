@@ -39,17 +39,6 @@ class ModulesTableBuilder extends TableBuilder {
     parent::__construct($container);
     $this->moduleExtensionList = $module_extension_list;
     $this->themeHandler = $theme_handler;
-
-    $this->header = [
-      'package' => $this->t('Package'),
-      'machine_name' => $this->t('Machine name'),
-      'label' => $this->t('Label'),
-      'type' => $this->t('Type'),
-      'status' => $this->t('Status'),
-      'core' => $this->t('Core version'),
-      'version' => $this->t('Version'),
-      'description' => $this->t('Description'),
-    ];
   }
 
   /**
@@ -66,7 +55,24 @@ class ModulesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildRows() {
+  protected function buildHeader() {
+    $this->header = [
+      'package' => $this->t('Package'),
+      'machine_name' => $this->t('Machine name'),
+      'label' => $this->t('Label'),
+      'type' => $this->t('Type'),
+      'status' => $this->t('Status'),
+      'core' => $this->t('Core version'),
+      'version' => $this->t('Version'),
+      'description' => $this->t('Description'),
+    ];
+    return $this->header;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function buildRows() {
     $this->rows = [];
 
     $modules = $this->moduleExtensionList->reset()->getList();
