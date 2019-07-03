@@ -85,12 +85,12 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_id' => $property_id,
       'property_label' => $property_info['label'],
       'property_type' => $property_info['type'],
-      'property_translatable' => $property_info['translatable'] ? 'YES' : 'NO',
-      'property_required' => $property_info['required'] ? 'YES' : 'NO',
+      'property_translatable' => $property_info['translatable'] ? 'TRUE' : 'FALSE',
+      'property_required' => $property_info['required'] ? 'TRUE' : 'FALSE',
     ];
 
     // Field data.
-    $row['property_field'] = !empty($property_info['field']) ? 'YES' : 'NO';
+    $row['property_field'] = !empty($property_info['field']) ? 'TRUE' : 'FALSE';
     if (!empty($property_info['field'])) {
       $field_base = field_info_field($property_id);
       $row['property_field_type'] = $field_base['type'];

@@ -40,7 +40,7 @@ class FieldsTableBuilder extends TableBuilder {
           'field_type' => $field_info['type'],
           'field_module' => $field_info['module'],
           'field_cardinality' => ($field_info['cardinality'] == -1 ? 'UNLIMITED' : $field_info['cardinality']),
-          'field_translatable' => $field_info['translatable'] ? 'YES' : 'NO',
+          'field_translatable' => $field_info['translatable'] ? 'TRUE' : 'FALSE',
         ];
 
         $column = current(array_keys($field_info['columns']));
