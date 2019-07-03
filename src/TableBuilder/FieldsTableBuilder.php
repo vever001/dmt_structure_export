@@ -10,9 +10,9 @@ use Drush\dmt_structure_export\Utilities;
 class FieldsTableBuilder extends TableBuilder {
 
   /**
-   * FieldsTableBuilder constructor.
+   * {@inheritdoc}
    */
-  public function __construct() {
+  protected function buildHeader() {
     $this->header = [
       'field_id' => dt('Field ID'),
       'field_name' => dt('Field name'),
@@ -23,6 +23,7 @@ class FieldsTableBuilder extends TableBuilder {
       'field_count' => dt('Field count'),
       'field_used_in' => dt('Used in'),
     ];
+    return $this->header;
   }
 
   /**

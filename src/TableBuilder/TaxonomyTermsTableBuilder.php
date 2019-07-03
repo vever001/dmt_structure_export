@@ -8,15 +8,16 @@ namespace Drush\dmt_structure_export\TableBuilder;
 class TaxonomyTermsTableBuilder extends TableBuilder {
 
   /**
-   * TaxonomyTermsTableBuilder constructor.
+   * {@inheritdoc}
    */
-  public function __construct() {
+  protected function buildHeader() {
     $this->header = [
       'machine_name' => dt('Vocabulary'),
       'tid' => dt('Term ID'),
       'name' => dt('Term name'),
       'term_description' => dt('Term description'),
     ];
+    return $this->header;
   }
 
   /**

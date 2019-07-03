@@ -8,9 +8,9 @@ namespace Drush\dmt_structure_export\TableBuilder;
 class ModulesTableBuilder extends TableBuilder {
 
   /**
-   * ModulesTableBuilder constructor.
+   * {@inheritdoc}
    */
-  public function __construct() {
+  protected function buildHeader() {
     $this->header = [
       'package' => dt('Package'),
       'machine_name' => dt('Machine name'),
@@ -21,6 +21,7 @@ class ModulesTableBuilder extends TableBuilder {
       'version' => dt('Version'),
       'description' => dt('Description'),
     ];
+    return $this->header;
   }
 
   /**

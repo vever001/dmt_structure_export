@@ -10,9 +10,9 @@ use Drush\dmt_structure_export\Utilities;
 class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
-   * EntityBundlesTableBuilder constructor.
+   * {@inheritdoc}
    */
-  public function __construct() {
+  protected function buildHeader() {
     $this->header = [
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
@@ -24,6 +24,7 @@ class EntityBundlesTableBuilder extends TableBuilder {
       'revisions_enabled' => dt('Revisions enabled'),
       'moderation_enabled' => dt('Workbench moderation enabled'),
     ];
+    return $this->header;
   }
 
   /**

@@ -35,12 +35,9 @@ interface TableBuilderInterface {
   public function setRows(array $rows);
 
   /**
-   * Builds rows.
-   *
-   * @return array
-   *   The rows as array.
+   * Builds the table.
    */
-  public function buildRows();
+  public function build();
 
   /**
    * Gets the complete table (header in first line + rows).

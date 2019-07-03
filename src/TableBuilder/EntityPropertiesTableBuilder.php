@@ -10,9 +10,9 @@ use Drush\dmt_structure_export\Utilities;
 class EntityPropertiesTableBuilder extends TableBuilder {
 
   /**
-   * EntityPropertiesTableBuilder constructor.
+   * {@inheritdoc}
    */
-  public function __construct() {
+  protected function buildHeader() {
     $this->header = [
       // Entity data.
       'entity' => dt('Entity type'),
@@ -32,6 +32,7 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
     ];
+    return $this->header;
   }
 
   /**
