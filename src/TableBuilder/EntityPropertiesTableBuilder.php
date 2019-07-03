@@ -191,11 +191,14 @@ class EntityPropertiesTableBuilder extends TableBuilder {
         $field_columns = $field_storage->getColumns();
         foreach ($field_columns as $field_column => $field_column_info) {
           $property_column_row = $property_row;
-          $property_column_row['property_id'] = $field_name . '/' . $field_column;
-          $property_column_row['property_label'] = $field->getLabel() . ' / ' . $field_column;
           $property_column_row['property_type'] = $field_column_info['type'];
 
-          if ($field_storage->hasCustomStorage()) {
+          if (count($field_columns) > 1) {
+            $property_column_row['property_id'] = count($field_columns) > 1 ? $field_name . '/' . $field_column : $field_name;
+            $property_column_row['property_label'] = $field->getLabel() . ' / ' . $field_column;
+          }
+
+          if (!$field_storage->hasCustomStorage()) {
             $field_condition = $field_name . '.' . $field_column;
             $property_column_row['property_count'] = Utilities::getEntityPropertyDataCount($field_entity_type, $field_condition, $bundle_id);
           }

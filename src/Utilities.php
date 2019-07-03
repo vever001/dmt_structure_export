@@ -21,13 +21,14 @@ class Utilities {
    *   The result from the EntityFieldQuery count.
    */
   public static function getEntityDataCount($entity_type, $bundle = NULL) {
-    if ($entity_type === 'rdf_entity') {
+    $entity_storage = \Drupal::entityTypeManager()->getStorage($entity_type);
+    if (is_a($entity_storage, '\Drupal\rdf_entity\Entity\RdfEntitySparqlStorage', TRUE)) {
       // Skip for rdf_entity (bug?).
       // TypeError: Return value of Drupal\rdf_entity\RdfGraphHandler::
       // getEntityTypeGraphUris() must be of the type array, null returned
       // in Drupal\rdf_entity\RdfGraphHandler->getEntityTypeGraphUris()
       // (line 164 of rdf_entity/src/RdfGraphHandler.php).
-      return 'Unavailable';
+      return FALSE;
     }
 
     $query = \Drupal::entityQuery($entity_type);
@@ -58,13 +59,14 @@ class Utilities {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public static function getEntityPropertyDataCount($entity_type, $field, $bundle = NULL) {
-    if ($entity_type === 'rdf_entity') {
+    $entity_storage = \Drupal::entityTypeManager()->getStorage($entity_type);
+    if (is_a($entity_storage, '\Drupal\rdf_entity\Entity\RdfEntitySparqlStorage', TRUE)) {
       // Skip for rdf_entity (bug?).
       // TypeError: Return value of Drupal\rdf_entity\RdfGraphHandler::
       // getEntityTypeGraphUris() must be of the type array, null returned
       // in Drupal\rdf_entity\RdfGraphHandler->getEntityTypeGraphUris()
       // (line 164 of rdf_entity/src/RdfGraphHandler.php).
-      return 'Unavailable';
+      return FALSE;
     }
 
     $query = \Drupal::entityQuery($entity_type);
