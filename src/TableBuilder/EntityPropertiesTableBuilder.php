@@ -38,80 +38,115 @@ class EntityPropertiesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildRows() {
+  protected function buildRows() {
     $this->rows = [];
-    $entity_info = entity_get_info();
-
-    foreach ($entity_info as $entity_type => $et_info) {
-      // Entity data.
-      $entity_row = [
-        'entity' => $et_info['label'] . ' (' . $entity_type . ')',
-        'entity_count' => Utilities::getEntityDataCount($entity_type),
-      ];
-      $this->rows[] = $entity_row;
-
-      if (!empty($et_info['bundles'])) {
-        foreach ($et_info['bundles'] as $bundle => $bundle_info) {
-          if (count($et_info['bundles']) > 1) {
-            $bundle_row = [
-              'bundle' => $bundle_info['label'] . ' (' . $bundle . ')',
-              'bundle_count' => Utilities::getEntityDataCount($entity_type, $bundle),
-            ];
-            $this->rows[] = $bundle_row;
-          }
-
-          // Property data.
-          $wrapper = entity_metadata_wrapper($entity_type, NULL, ['bundle' => $bundle]);
-          $entity_properties = $wrapper->getPropertyInfo();
-          foreach ($entity_properties as $property_id => $property_info) {
-            $this->buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle);
-          }
-        }
-      }
-    }
-
+    $rows = $this->buildEntityRows();
+    $this->rows = $this->flattenRows($rows);
     return $this->rows;
   }
 
   /**
-   * Process a single entity property.
+   * Builds all entity rows.
    */
-  protected function buildEntityPropertyRows($property_id, $property_info, $entity_type, $bundle) {
-    // Do not export read only properties.
-    if (!empty($property_info['computed'])) {
-      return;
+  protected function buildEntityRows() {
+    $row = [];
+    $this->entity_info = entity_get_info();
+    foreach ($this->entity_info as $entity_type => $et_info) {
+      $row[$entity_type] = $this->buildEntityRow($entity_type);
     }
+    return $row;
+  }
 
-    $row = [
-      'property_id' => $property_id,
-      'property_label' => $property_info['label'],
-      'property_type' => $property_info['type'],
-      'property_translatable' => $property_info['translatable'] ? 'TRUE' : 'FALSE',
-      'property_required' => $property_info['required'] ? 'TRUE' : 'FALSE',
-    ];
+  /**
+   * Builds an entity row.
+   */
+  protected function buildEntityRow($entity_type) {
+    $row = [];
+    $row['entity'] = $this->entity_info[$entity_type]['label'] . ' (' . $entity_type . ')';
+    $row['entity_count'] = Utilities::getEntityDataCount($entity_type);
+    $row['bundles'] = $this->buildEntityBundleRows($entity_type);
+    return $row;
+  }
 
-    // Field data.
-    $row['property_field'] = !empty($property_info['field']) ? 'TRUE' : 'FALSE';
-    if (!empty($property_info['field'])) {
-      $field_base = field_info_field($property_id);
-      $row['property_field_type'] = $field_base['type'];
-      $row['property_field_module'] = $field_base['module'];
-      $row['property_field_cardinality'] = ($field_base['cardinality'] == -1 ? 'UNLIMITED' : $field_base['cardinality']);
+  /**
+   * Builds all entity bundle rows.
+   */
+  protected function buildEntityBundleRows($entity_type) {
+    $row = [];
 
-      foreach ($field_base['columns'] as $column_id => $column_info) {
-        // Add field column row.
-        $this->rows[] = array_merge($row, [
-          'property_id' => $property_id . '/' . $column_id,
-          'property_label' => $property_info['label'] . ' / ' . $column_id,
-          'property_type' => $column_info['type'],
-          'property_count' => Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle),
-        ]);
+    if (!empty($this->entity_info[$entity_type]['bundles'])) {
+      foreach ($this->entity_info[$entity_type]['bundles'] as $bundle_id => $bundle_info) {
+        $row[$bundle_id] = $this->buildEntityBundleRow($entity_type, $bundle_id);
       }
     }
     else {
-      // Add property row.
-      $this->rows[] = $row;
+      $row[$entity_type] = $this->buildEntityBundleRow($entity_type);
     }
+
+    return $row;
+  }
+
+  /**
+   * Builds an entity bundle row.
+   */
+  protected function buildEntityBundleRow($entity_type, $bundle_id = NULL) {
+    $row = [];
+
+    if (!empty($bundle_id)) {
+      $bundle_info = $this->entity_info[$entity_type]['bundles'][$bundle_id];
+      $row['bundle'] = $bundle_info['label'] . ' (' . $bundle_id . ')';
+      $row['bundle_count'] = Utilities::getEntityDataCount($entity_type, $bundle_id);
+    }
+
+    $row['bundle_properties'] = $this->buildEntityBundlePropertyRows($entity_type, $bundle_id);
+    return $row;
+  }
+
+  /**
+   * Builds all entity bundle properties rows.
+   */
+  protected function buildEntityBundlePropertyRows($entity_type, $bundle_id = NULL) {
+    $rows = [];
+
+    $options = !empty($bundle_id) ? array('bundle' => $bundle_id) : array();
+    $wrapper = entity_metadata_wrapper($entity_type, NULL, $options);
+    $entity_properties = $wrapper->getPropertyInfo();
+    foreach ($entity_properties as $property_id => $property_info) {
+      // Skip read only properties.
+      if (!empty($property_info['computed'])) {
+        continue;
+      }
+
+      $property_row = [];
+      $property_row['property_id'] = $property_id;
+      $property_row['property_label'] = $property_info['label'];
+      $property_row['property_type'] = $property_info['type'];
+      $property_row['property_translatable'] = $property_info['translatable'] ? 'TRUE' : 'FALSE';
+      $property_row['property_required'] = $property_info['required'] ? 'TRUE' : 'FALSE';
+
+      // Field data.
+      $property_row['property_field'] = !empty($property_info['field']) ? 'TRUE' : 'FALSE';
+      if (!empty($property_info['field'])) {
+        $field_base = field_info_field($property_id);
+        $property_row['property_field_type'] = $field_base['type'];
+        $property_row['property_field_module'] = $field_base['module'];
+        $property_row['property_field_cardinality'] = ($field_base['cardinality'] == -1 ? 'UNLIMITED' : $field_base['cardinality']);
+
+        foreach ($field_base['columns'] as $column_id => $column_info) {
+          $property_column_row = $property_row;
+          $property_column_row['property_id'] = $property_id . '/' . $column_id;
+          $property_column_row['property_label'] = $property_info['label'] . ' / ' . $column_id;
+          $property_column_row['property_type'] = $column_info['type'];
+          $property_column_row['property_count'] = Utilities::getEntityPropertyDataCount($property_id, $column_id, $entity_type, $bundle_id);
+          $rows[$property_id . '.' . $column_id] = $property_column_row;
+        }
+      }
+      else {
+        $rows[$property_id] = $property_row;
+      }
+    }
+
+    return $rows;
   }
 
 }

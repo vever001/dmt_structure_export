@@ -80,4 +80,46 @@ abstract class TableBuilder implements TableBuilderInterface {
    */
   abstract protected function buildRows();
 
+  /**
+   * Flattens an array of rows.
+   */
+  protected function flattenRows(array $rows) {
+    $result = [];
+    foreach ($rows as $row) {
+      $this->flattenRow($row, $result);
+    }
+    return $result;
+  }
+
+  /**
+   * Flattens a single row.
+   *
+   * Rows may contain nested arrays (unlimited depth), which will be appended
+   * and flattened to the $result array.
+   */
+  protected function flattenRow(array $row, &$result) {
+    $new_row = [];
+    $nested_array_keys = [];
+    foreach ($row as $key => $value) {
+      if (!is_array($value)) {
+        $new_row[$key] = $value;
+      }
+      else {
+        $nested_array_keys[] = $key;
+      }
+    }
+
+    if (!empty($new_row)) {
+      $result[] = $new_row;
+    }
+
+    if (!empty($nested_array_keys)) {
+      foreach ($nested_array_keys as $key) {
+        $this->flattenRow($row[$key], $result);
+      }
+    }
+
+    return $result;
+  }
+
 }
