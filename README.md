@@ -24,14 +24,26 @@ The recommended way is to use Composer.
 
 You can install this Drush tool:
 
-1\. Per drupal instance (in `DRUPAL_ROOT/drush` or `DRUPAL_ROOT/../drush` or `DRUPAL_ROOT/sites/all/drush`)
+#### Per drupal instance (recommended)
 
-    ```bash
-    composer require composer/installers
-    composer require vever001/dmt_structure_export:7.x-1.x-dev
-    ```
+The dmt_structure_export folder should go in `DRUPAL_ROOT/drush/Commands` or `DRUPAL_ROOT/../drush/Commands`
+or `DRUPAL_ROOT/sites/all/drush/Commands`.
 
-2\. Or globally (in your `~/.drush` folder)
+Using composer/installers: `composer require composer/installers`
+
+Make sure you have the following in your composer.json's "extra" section:
+
+    "installer-paths": {
+        ...
+        "drush/Commands/{$name}": ["type:drupal-drush"]
+    }
+    
+
+Finally: `composer require vever001/dmt_structure_export:8.x-1.x-dev`
+
+#### Or globally
+
+You can install it in your `~/.drush` folder.
 
   * Create a `drush-extensions/Commands` folder in `~/.drush`
   * Copy the [example.drushrc.php file](https://github.com/drush-ops/drush/blob/8.x/examples/example.drushrc.php) to `~/.drush` and rename it to `drushrc.php`
