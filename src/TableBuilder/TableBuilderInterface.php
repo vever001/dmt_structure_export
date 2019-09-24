@@ -8,43 +8,13 @@ namespace Drush\dmt_structure_export\TableBuilder;
 interface TableBuilderInterface {
 
   /**
-   * Returns the header.
+   * Builds the header array.
    */
-  public function getHeader();
+  public function buildHeader();
 
   /**
-   * Sets the header.
-   *
-   * @param array $header
-   *   An associative array where keys are used to identify row elements and
-   *   values are header labels.
+   * Builds the rows array.
    */
-  public function setHeader(array $header);
-
-  /**
-   * Returns the rows.
-   */
-  public function getRows();
-
-  /**
-   * Sets the rows.
-   *
-   * @param array $rows
-   *   An array of rows.
-   */
-  public function setRows(array $rows);
-
-  /**
-   * Builds the table.
-   */
-  public function build();
-
-  /**
-   * Gets the complete table (header in first line + rows).
-   *
-   * @return array
-   *   The table as array.
-   */
-  public function getTable();
+  public function buildRows();
 
 }

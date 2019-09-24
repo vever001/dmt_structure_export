@@ -10,8 +10,8 @@ class ModulesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  protected function buildHeader() {
-    $this->header = [
+  public function buildHeader() {
+    $header = [
       'package' => dt('Package'),
       'machine_name' => dt('Machine name'),
       'label' => dt('Label'),
@@ -21,19 +21,20 @@ class ModulesTableBuilder extends TableBuilder {
       'version' => dt('Version'),
       'description' => dt('Description'),
     ];
-    return $this->header;
+
+    $this->setHeader($header);
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildRows() {
-    $this->rows = [];
+    $rows = [];
     $extensions = drush_get_extensions(FALSE);
     uasort($extensions, '_drush_pm_sort_extensions');
 
     foreach ($extensions as $extension) {
-      $this->rows[] = [
+      $rows[] = [
         'package' => $extension->info['package'],
         'machine_name' => $extension->name,
         'label' => $extension->info['name'],
@@ -45,7 +46,7 @@ class ModulesTableBuilder extends TableBuilder {
       ];
     }
 
-    return $this->rows;
+    $this->setRows($rows);
   }
 
 }

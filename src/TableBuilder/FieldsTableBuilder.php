@@ -12,8 +12,8 @@ class FieldsTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  protected function buildHeader() {
-    $this->header = [
+  public function buildHeader() {
+    $header = [
       'field_id' => dt('Field ID'),
       'field_name' => dt('Field name'),
       'field_type' => dt('Field type'),
@@ -23,14 +23,15 @@ class FieldsTableBuilder extends TableBuilder {
       'field_count' => dt('Field count'),
       'field_used_in' => dt('Used in'),
     ];
-    return $this->header;
+
+    $this->setHeader($header);
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildRows() {
-    $this->rows = [];
+    $rows = [];
 
     $fields = field_info_fields();
     foreach ($fields as $field_id => $field_info) {
@@ -57,11 +58,11 @@ class FieldsTableBuilder extends TableBuilder {
         }
         $row['field_used_in'] = implode(', ', $used_in_array);
 
-        $this->rows[] = $row;
+        $rows[] = $row;
       }
     }
 
-    return $this->rows;
+    $this->setRows($rows);
   }
 
 }

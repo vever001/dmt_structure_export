@@ -8,86 +8,124 @@ namespace Drush\dmt_structure_export\TableBuilder;
 abstract class TableBuilder implements TableBuilderInterface {
 
   /**
-   * {@inheritdoc}
+   * The header of the table.
+   *
+   * @var array
    */
-  protected $header = [];
+  private $header = [];
 
   /**
-   * {@inheritdoc}
+   * The rows of the table.
+   *
+   * @var array
    */
-  protected $rows = [];
+  private $rows = [];
 
   /**
-   * {@inheritdoc}
+   * The whole table (header in first line followed by the rows).
+   * @var
    */
-  public function setHeader(array $header) {
-    $this->header = $header;
-  }
+  private $table = [];
 
   /**
-   * {@inheritdoc}
+   * Returns the header of the table.
+   *
+   * @return array
+   *   The header of the table.
    */
   public function getHeader() {
     return $this->header;
   }
 
   /**
-   * {@inheritdoc}
+   * Sets the header of the table.
+   *
+   * @param array $header
+   *   An associative array where keys are used to identify row elements and
+   *   values are header labels.
+   */
+  public function setHeader(array $header) {
+    $this->header = $header;
+  }
+
+  /**
+   * Returns the rows of the table.
+   *
+   * @return array
+   *   The rows of the table.
    */
   public function getRows() {
     return $this->rows;
   }
 
   /**
-   * {@inheritdoc}
+   * Sets the rows of the table.
+   *
+   * @param array $rows
+   *   A list of rows.
    */
   public function setRows(array $rows) {
     $this->rows = $rows;
   }
 
   /**
-   * {@inheritdoc}
+   * Returns the table to export.
+   *
+   * @return array
+   *   The table to export.
    */
   public function getTable() {
-    $table = [];
-
-    if (!empty($this->header)) {
-      $table[] = $this->header;
-    }
-
-    if (!empty($this->rows)) {
-      $table = array_merge($table, $this->rows);
-    }
-
-    return $table;
+    return $this->table;
   }
 
   /**
-   * {@inheritdoc}
+   * Sets the table to export.
+   *
+   * @param array $table
+   *   A list of rows preceded or not by a header.
+   */
+  public function setTable(array $table) {
+    $this->table = $table;
+   }
+
+  /**
+   * Builds the table to export.
+   */
+  public function buildTable() {
+    $table = [];
+    if (!empty($this->getHeader())) {
+      $table[] = $this->getHeader();
+    }
+    if (!empty($this->getRows())) {
+      $table = array_merge($table, $this->getRows());
+    }
+    $this->setTable($table);
+  }
+
+  /**
+   * Builds the header, the rows and the table.
    */
   public function build() {
     $this->buildHeader();
     $this->buildRows();
+    $this->buildTable();
   }
 
   /**
-   * Builds the header array.
-   */
-  abstract protected function buildHeader();
-
-  /**
-   * Builds the rows array.
-   */
-  abstract protected function buildRows();
-
-  /**
-   * Flattens an array of rows.
+   * Flattens a list of rows.
+   *
+   * @param array $rows
+   *   The list of rows to be flattened.
+   *
+   * @return array
+   *   The list of flattened rows.
    */
   protected function flattenRows(array $rows) {
     $result = [];
     foreach ($rows as $row) {
       $this->flattenRow($row, $result);
     }
+
     return $result;
   }
 
@@ -96,6 +134,11 @@ abstract class TableBuilder implements TableBuilderInterface {
    *
    * Rows may contain nested arrays (unlimited depth), which will be appended
    * and flattened to the $result array.
+   *
+   * @param array $row
+   *   The row to be flattened.
+   * @param $result
+   *   The list of flattened rows.
    */
   protected function flattenRow(array $row, &$result) {
     $new_row = [];
@@ -118,8 +161,6 @@ abstract class TableBuilder implements TableBuilderInterface {
         $this->flattenRow($row[$key], $result);
       }
     }
-
-    return $result;
   }
 
 }

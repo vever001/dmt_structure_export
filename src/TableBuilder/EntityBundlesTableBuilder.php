@@ -12,8 +12,8 @@ class EntityBundlesTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  protected function buildHeader() {
-    $this->header = [
+  public function buildHeader() {
+    $header = [
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
       'bundle' => dt('Bundle'),
@@ -24,14 +24,15 @@ class EntityBundlesTableBuilder extends TableBuilder {
       'revisions_enabled' => dt('Revisions enabled'),
       'moderation_enabled' => dt('Workbench moderation enabled'),
     ];
-    return $this->header;
+
+    $this->setHeader($header);
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildRows() {
-    $this->rows = [];
+    $rows = [];
     $entity_info = entity_get_info();
 
     foreach ($entity_info as $entity_type => $et_info) {
@@ -48,7 +49,7 @@ class EntityBundlesTableBuilder extends TableBuilder {
         $entity_row['multilingual_type'] = $multilingual_type;
       }
 
-      $this->rows[] = $entity_row;
+      $rows[] = $entity_row;
 
       // Process bundles.
       if ($has_bundles) {
@@ -70,16 +71,22 @@ class EntityBundlesTableBuilder extends TableBuilder {
               break;
           }
 
-          $this->rows[] = $bundle_row;
+          $rows[] = $bundle_row;
         }
       }
     }
 
-    return $this->rows;
+    $this->setRows($rows);
   }
 
   /**
-   * Process a node bundle row.
+   * Processes a node bundle row.
+   *
+   * @param $bundle
+   *   The node's bundle.
+   *
+   * @return array
+   *   The node bundle row.
    */
   protected function buildNodeBundleRow($bundle) {
     $row = [];
@@ -112,6 +119,15 @@ class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
    * Returns the translation type/handler for the given entity type.
+   *
+   * @param $entity_type
+   *   The entity type.
+   *
+   * @param null $bundle
+   *   The entity's bundle.
+   *
+   * @return bool|mixed
+   *   The entity's translation type.
    */
   protected function getEntityTranslationType($entity_type, $bundle = NULL) {
     switch ($entity_type) {
@@ -128,6 +144,12 @@ class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
    * Returns the translation type/handler for a given node bundle.
+   *
+   * @param $bundle
+   *   The node's bundle.
+   *
+   * @return mixed
+   *   The node's translation type/handler.
    */
   protected function getEntityTranslationTypeNode($bundle) {
     $multilingual_type = variable_get('language_content_type_' . $bundle, 0);
@@ -142,7 +164,13 @@ class EntityBundlesTableBuilder extends TableBuilder {
   }
 
   /**
-   * Returns the translation type/handler for a given taxonomy_term bundle.
+   * Returns the translation type/handler for a given taxonomy term bundle.
+   *
+   * @param $bundle
+   *   The taxonomy term's bundle.
+   *
+   * @return bool|mixed
+   *   The taxonomy term's translation type/handler.
    */
   protected function getEntityTranslationTypeTaxonomyTerm($bundle) {
     if ($multilingual_type = $this->getEntityTranslationTypeTaxonomyTermI18n($bundle)) {
@@ -154,7 +182,15 @@ class EntityBundlesTableBuilder extends TableBuilder {
   }
 
   /**
-   * Returns the entity_translation type/handler for a given entity type.
+   * Returns the entity translation type/handler for a given entity type.
+   *
+   * @param $entity_type
+   *   The entity type.
+   * @param null $bundle
+   *   The entity bundle.
+   *
+   * @return bool|string
+   *   The response string or false.
    */
   protected function getEntityTranslationTypeEntityTranslation($entity_type, $bundle = NULL) {
     if (!module_exists('entity_translation') || !entity_translation_enabled($entity_type)) {
@@ -170,6 +206,12 @@ class EntityBundlesTableBuilder extends TableBuilder {
 
   /**
    * Returns the i18n translation type for a given vocabulary.
+   *
+   * @param $vocabulary_name
+   *   The vocabulary's name.
+   *
+   * @return bool|mixed
+   *   The i18n translation type of the given vocabulary or false.
    */
   protected function getEntityTranslationTypeTaxonomyTermI18n($vocabulary_name) {
     if (module_exists('i18n_taxonomy')) {

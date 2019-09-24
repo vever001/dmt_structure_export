@@ -10,14 +10,15 @@ class TaxonomyTermsTableBuilder extends TableBuilder {
   /**
    * {@inheritdoc}
    */
-  protected function buildHeader() {
-    $this->header = [
+  public function buildHeader() {
+    $header = [
       'machine_name' => dt('Vocabulary'),
       'tid' => dt('Term ID'),
       'name' => dt('Term name'),
       'term_description' => dt('Term description'),
     ];
-    return $this->header;
+
+    $this->setHeader($header);
   }
 
   /**
@@ -33,7 +34,8 @@ class TaxonomyTermsTableBuilder extends TableBuilder {
     $query->orderby('term.vid');
     $query->orderby('term.name');
     $rows = $query->execute()->fetchAllAssoc('tid', \PDO::FETCH_ASSOC);
-    $this->rows = $rows;
+
+    $this->setRows($rows);
   }
 
 }

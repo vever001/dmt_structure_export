@@ -10,10 +10,17 @@ use Drush\dmt_structure_export\Utilities;
 class EntityPropertiesTableBuilder extends TableBuilder {
 
   /**
+   * Entity information.
+   *
+   * @var array
+   */
+  protected $entity_info;
+
+  /**
    * {@inheritdoc}
    */
-  protected function buildHeader() {
-    $this->header = [
+  public function buildHeader() {
+    $header = [
       // Entity data.
       'entity' => dt('Entity type'),
       'entity_count' => dt('Entity count'),
@@ -32,21 +39,25 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
     ];
-    return $this->header;
+
+    $this->setHeader($header);
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function buildRows() {
-    $this->rows = [];
-    $rows = $this->buildEntityRows();
-    $this->rows = $this->flattenRows($rows);
-    return $this->rows;
+  public function buildRows() {
+    $rows = $this->buildEntityRows() ?: [];
+    $rows = $this->flattenRows($rows);
+
+    $this->setRows($rows);
   }
 
   /**
    * Builds all entity rows.
+   *
+   * @return array
+   *   The list of entity rows.
    */
   protected function buildEntityRows() {
     $row = [];
@@ -54,22 +65,36 @@ class EntityPropertiesTableBuilder extends TableBuilder {
     foreach ($this->entity_info as $entity_type => $et_info) {
       $row[$entity_type] = $this->buildEntityRow($entity_type);
     }
+
     return $row;
   }
 
   /**
    * Builds an entity row.
+   *
+   * @param $entity_type
+   *   The entity type.
+   *
+   * @return array
+   *   The entity row.
    */
   protected function buildEntityRow($entity_type) {
     $row = [];
     $row['entity'] = $this->entity_info[$entity_type]['label'] . ' (' . $entity_type . ')';
     $row['entity_count'] = Utilities::getEntityDataCount($entity_type);
     $row['bundles'] = $this->buildEntityBundleRows($entity_type);
+
     return $row;
   }
 
   /**
    * Builds all entity bundle rows.
+   *
+   * @param $entity_type
+   *   The entity type.
+   *
+   * @return array
+   *   The list of entity bundle rows.
    */
   protected function buildEntityBundleRows($entity_type) {
     $row = [];
@@ -88,6 +113,15 @@ class EntityPropertiesTableBuilder extends TableBuilder {
 
   /**
    * Builds an entity bundle row.
+   *
+   * @param $entity_type
+   *   The entity type.
+   *
+   * @param null $bundle_id
+   *   The entity's bundle id.
+   *
+   * @return array
+   *   The entity bundle row.
    */
   protected function buildEntityBundleRow($entity_type, $bundle_id = NULL) {
     $row = [];
@@ -97,13 +131,22 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       $row['bundle'] = $bundle_info['label'] . ' (' . $bundle_id . ')';
       $row['bundle_count'] = Utilities::getEntityDataCount($entity_type, $bundle_id);
     }
-
     $row['bundle_properties'] = $this->buildEntityBundlePropertyRows($entity_type, $bundle_id);
+
     return $row;
   }
 
   /**
    * Builds all entity bundle properties rows.
+   *
+   * @param $entity_type
+   *   The entity type.
+   *
+   * @param null $bundle_id
+   *   The entities's bundle id.
+   *
+   * @return array
+   *   The entity bundle property rows.
    */
   protected function buildEntityBundlePropertyRows($entity_type, $bundle_id = NULL) {
     $rows = [];
