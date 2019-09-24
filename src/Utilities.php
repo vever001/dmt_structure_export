@@ -33,6 +33,7 @@ class Utilities {
     }
 
     $query->addMetaData('account', user_load(1));
+
     return (int) $query->count()->execute();
   }
 
@@ -69,6 +70,7 @@ class Utilities {
 
     $query->fieldCondition($property_name, $column, NULL, 'IS NOT');
     $query->addMetaData('account', user_load(1));
+
     return (int) $query->count()->execute();
   }
 

@@ -97,6 +97,12 @@ class TableBuilderManager {
 
   /**
    * Returns whether the given TableBuilder ID exists.
+   *
+   * @param string $id
+   *   The TableBuilder ID.
+   *
+   * @return bool
+   *   The response on whether the TableBuilder ID exists or not.
    */
   public function hasTableBuilder($id) {
     return array_key_exists($id, $this->tableBuilders);
