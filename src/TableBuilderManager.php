@@ -18,12 +18,6 @@ class TableBuilderManager {
   protected $tableBuilders = [];
 
   /**
-   * TableBuilderManager constructor.
-   */
-  public function __construct() {
-  }
-
-  /**
    * Adds all default TableBuilder objects.
    */
   public function addDefaultTableBuilders() {
