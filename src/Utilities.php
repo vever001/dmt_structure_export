@@ -42,14 +42,10 @@ class Utilities {
       // Use dt() with "!" instead of "@" placeholders, to avoid html in cli
       // output.
       // @todo Is this the recommended way to do this?
-      drush_log(
-        dt(
-          "Exception while counting !type entities:\n!message",
-          [
-            '!type' => ($bundle === NULL) ? $entity_type : "$entity_type:$bundle",
-            '!message' => $e->getMessage(),
-          ]),
-        LogLevel::WARNING);
+      drush_log(dt('Exception while counting @type entities: !message', [
+        '@type' => ($bundle === NULL) ? $entity_type : "$entity_type:$bundle",
+        '!message' => $e->getMessage(),
+      ]), LogLevel::WARNING);
       return -1;
     }
   }
