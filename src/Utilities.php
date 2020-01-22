@@ -2,6 +2,8 @@
 
 namespace Drush\dmt_structure_export;
 
+use Drush\Log\LogLevel;
+
 /**
  * Class Utilities.
  *
@@ -18,7 +20,7 @@ class Utilities {
    *   (Optional) The entity bundle.
    *
    * @return int
-   *   The result from the EntityFieldQuery count.
+   *   The result from the EntityFieldQuery count, or -1 on failure.
    */
   public static function getEntityDataCount($entity_type, $bundle = NULL) {
     if ($entity_type === 'comment' && !empty($bundle)) {
@@ -33,7 +35,19 @@ class Utilities {
     }
 
     $query->addMetaData('account', user_load(1));
-    return (int) $query->count()->execute();
+    try {
+      return (int) $query->count()->execute();
+    }
+    catch (\Exception $e) {
+      // Use dt() with "!" instead of "@" placeholders, to avoid html in cli
+      // output.
+      // @todo Is this the recommended way to do this?
+      drush_log(dt('Exception while counting @type entities: !message', [
+        '@type' => ($bundle === NULL) ? $entity_type : "$entity_type:$bundle",
+        '!message' => $e->getMessage(),
+      ]), LogLevel::WARNING);
+      return -1;
+    }
   }
 
   /**
