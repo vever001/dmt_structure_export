@@ -21,7 +21,6 @@ class ModulesTableBuilder extends TableBuilder {
       'version' => dt('Version'),
       'description' => dt('Description'),
     ];
-
     $this->setHeader($header);
   }
 
@@ -32,7 +31,6 @@ class ModulesTableBuilder extends TableBuilder {
     $rows = [];
     $extensions = drush_get_extensions(FALSE);
     uasort($extensions, '_drush_pm_sort_extensions');
-
     foreach ($extensions as $extension) {
       $rows[] = [
         'package' => $extension->info['package'],
@@ -45,7 +43,6 @@ class ModulesTableBuilder extends TableBuilder {
         'description' => $extension->info['description'],
       ];
     }
-
     $this->setRows($rows);
   }
 

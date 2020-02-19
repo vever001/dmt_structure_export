@@ -16,22 +16,24 @@ class Utilities {
    *   The entity type.
    * @param string $bundle
    *   (Optional) The entity bundle.
+   * @param int $status
+   *   (Optional) The entity status.
    *
    * @return int
    *   The result from the EntityFieldQuery count.
    */
-  public static function getEntityDataCount($entity_type, $bundle = NULL) {
+  public static function getEntityDataCount($entity_type, $bundle = NULL, $status = NULL) {
     if ($entity_type === 'comment' && !empty($bundle)) {
       return 'Unavailable';
     }
-
     $query = new \EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
-
     if (!empty($bundle)) {
       $query->entityCondition('bundle', $bundle);
     }
-
+    if (!is_null($status)) {
+      $query->propertyCondition('status', $status);
+    }
     $query->addMetaData('account', user_load(1));
 
     return (int) $query->count()->execute();
@@ -56,10 +58,8 @@ class Utilities {
     if ($entity_types === 'comment' && !empty($bundles)) {
       return 'Unavailable';
     }
-
     $query = new \EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_types, is_array($entity_types) ? 'IN' : '=');
-
     if (!empty($bundles)) {
       $entity_type = is_array($entity_types) ? current($entity_types) : $entity_types;
       $entity_info = entity_get_info($entity_type);
@@ -67,7 +67,6 @@ class Utilities {
         $query->entityCondition('bundle', $bundles, is_array($bundles) ? 'IN' : '=');
       }
     }
-
     $query->fieldCondition($property_name, $column, NULL, 'IS NOT');
     $query->addMetaData('account', user_load(1));
 

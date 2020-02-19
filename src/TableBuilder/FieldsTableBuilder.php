@@ -23,7 +23,6 @@ class FieldsTableBuilder extends TableBuilder {
       'field_count' => dt('Field count'),
       'field_used_in' => dt('Used in'),
     ];
-
     $this->setHeader($header);
   }
 
@@ -32,7 +31,6 @@ class FieldsTableBuilder extends TableBuilder {
    */
   public function buildRows() {
     $rows = [];
-
     $fields = field_info_fields();
     foreach ($fields as $field_id => $field_info) {
       if (!empty($field_info['bundles'])) {
@@ -44,11 +42,9 @@ class FieldsTableBuilder extends TableBuilder {
           'field_cardinality' => ($field_info['cardinality'] == -1 ? 'UNLIMITED' : $field_info['cardinality']),
           'field_translatable' => $field_info['translatable'] ? 'TRUE' : 'FALSE',
         ];
-
         $column = current(array_keys($field_info['columns']));
         $entity_types = array_keys($field_info['bundles']);
         $row['field_count'] = Utilities::getEntityPropertyDataCount($field_id, $column, $entity_types);
-
         $used_in_array = [];
         foreach ($field_info['bundles'] as $entity => $bundles) {
           $used_in_array[] = dt('@entity (@bundles)', [
@@ -57,11 +53,9 @@ class FieldsTableBuilder extends TableBuilder {
           ]);
         }
         $row['field_used_in'] = implode(', ', $used_in_array);
-
         $rows[] = $row;
       }
     }
-
     $this->setRows($rows);
   }
 

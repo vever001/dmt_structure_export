@@ -28,7 +28,6 @@ class TableBuilderManager {
       'modules' => '\Drush\dmt_structure_export\TableBuilder\ModulesTableBuilder',
       'taxonomy_terms' => '\Drush\dmt_structure_export\TableBuilder\TaxonomyTermsTableBuilder',
     ];
-
     foreach ($defaultTableBuilders as $id => $classname) {
       $tableBuilder = new $classname();
       $this->addTableBuilder($id, $tableBuilder);
@@ -48,6 +47,7 @@ class TableBuilderManager {
    */
   public function addTableBuilder($key, TableBuilderInterface $tableBuilder) {
     $this->tableBuilders[$key] = $tableBuilder;
+
     return $this;
   }
 
@@ -66,13 +66,11 @@ class TableBuilderManager {
     if (empty($this->tableBuilders)) {
       $this->addDefaultTableBuilders();
     }
-
     if (!$this->hasTableBuilder($id)) {
       throw new UnknownTableBuilderException($id);
     }
 
-    $tableBuilder = $this->tableBuilders[$id];
-    return $tableBuilder;
+    return $this->tableBuilders[$id];
   }
 
   /**
@@ -90,13 +88,13 @@ class TableBuilderManager {
   }
 
   /**
-   * Returns whether the given TableBuilder ID exists.
+   * Checks whether the given TableBuilder id exists or not.
    *
    * @param string $id
-   *   The TableBuilder ID.
+   *   The TableBuilder id.
    *
    * @return bool
-   *   The response on whether the TableBuilder ID exists or not.
+   *   The response on whether the TableBuilder id exists or not.
    */
   public function hasTableBuilder($id) {
     return array_key_exists($id, $this->tableBuilders);

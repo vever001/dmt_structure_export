@@ -32,7 +32,6 @@ class TaxonomyTermsTableBuilder extends TableBuilder {
       'unpublished_entity_types' => dt('Entity types (Unpublished)'),
       'term_description' => dt('Term description'),
     ];
-
     $this->setHeader($header);
   }
 
@@ -57,7 +56,6 @@ class TaxonomyTermsTableBuilder extends TableBuilder {
     $this->sanitizeDescriptions($rows);
     // Append the term usage count for both published and unpublished entities.
     $this->appendTermUsageInfo($rows);
-
     $this->setRows($rows);
   }
 

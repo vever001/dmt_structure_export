@@ -32,12 +32,15 @@ class EntityPropertiesTableBuilder extends TableBuilder {
       'property_type' => dt('Property type'),
       'property_translatable' => dt('Property translatable'),
       'property_required' => dt('Property required'),
-      'property_count' => dt('Property count'),
       // Field data.
       'property_field' => dt('Is field?'),
       'property_field_type' => dt('Field Type'),
       'property_field_module' => dt('Field module'),
       'property_field_cardinality' => dt('Field cardinality'),
+      // Property data.
+      // This property was requested to be placed as the last column and be
+      // renamed from "Property count" to "Count of Populated fields".
+      'property_count' => dt('Count of Populated fields'),
     ];
 
     $this->setHeader($header);
@@ -98,7 +101,6 @@ class EntityPropertiesTableBuilder extends TableBuilder {
    */
   protected function buildEntityBundleRows($entity_type) {
     $row = [];
-
     if (!empty($this->entity_info[$entity_type]['bundles'])) {
       foreach ($this->entity_info[$entity_type]['bundles'] as $bundle_id => $bundle_info) {
         $row[$bundle_id] = $this->buildEntityBundleRow($entity_type, $bundle_id);

@@ -63,6 +63,7 @@ class DmtStructureExportCommands extends DrushCommands {
       $table_builder = $manager->getTableBuilder($export_type);
       $table_builder->build();
       $table = $table_builder->getTable();
+
       return new RowsOfFields($table);
     }
     catch (\Exception $e) {
@@ -93,7 +94,6 @@ class DmtStructureExportCommands extends DrushCommands {
         // Build table.
         $table_builder->build();
         $data = new RowsOfFields($table_builder->getTable());
-
         // Write to CSV.
         $file_path = $dst_dir . '/' . $export_type . '.csv';
         $output = new StreamOutput(fopen($file_path, 'w'));
@@ -126,16 +126,14 @@ class DmtStructureExportCommands extends DrushCommands {
   }
 
   /**
-   * Returns the destination folder.
+   * Returns the destination directory.
    */
   protected function getDestinationDirectory($destination) {
     $dst_dir = !empty($destination) ? $destination : self::DMT_STRUCTURE_EXPORT_DEFAULT_DIR;
-
     // Handle relative or absolute paths.
     if (strpos($dst_dir, '/') !== 0) {
       $dst_dir = drush_cwd() . '/' . $dst_dir;
     }
-
     // Create the destination dir if needed.
     if (!is_dir($dst_dir)) {
       drush_mkdir($dst_dir);

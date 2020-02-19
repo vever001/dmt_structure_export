@@ -73,7 +73,7 @@ abstract class TableBuilder implements TableBuilderInterface {
    *
    * @return array
    *   The table to export.
-   */
+  */
   public function getTable() {
     return $this->table;
   }
@@ -86,7 +86,7 @@ abstract class TableBuilder implements TableBuilderInterface {
    */
   public function setTable(array $table) {
     $this->table = $table;
-   }
+  }
 
   /**
    * Builds the table to export.
@@ -122,9 +122,9 @@ abstract class TableBuilder implements TableBuilderInterface {
    */
   protected function flattenRows(array $rows) {
     $result = [];
-    foreach ($rows as $row) {
-      $this->flattenRow($row, $result);
-    }
+      foreach ($rows as $row) {
+        $this->flattenRow($row, $result);
+      }
 
     return $result;
   }
@@ -151,11 +151,9 @@ abstract class TableBuilder implements TableBuilderInterface {
         $nested_array_keys[] = $key;
       }
     }
-
     if (!empty($new_row)) {
       $result[] = $new_row;
     }
-
     if (!empty($nested_array_keys)) {
       foreach ($nested_array_keys as $key) {
         $this->flattenRow($row[$key], $result);
