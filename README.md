@@ -39,7 +39,7 @@ Make sure you have the following in your composer.json's "extra" section:
     }
     
 
-Finally: `composer require vever001/dmt_structure_export:8.x-1.x-dev`
+Finally: `composer require ioannis-ampatzis/dmt_structure_export:8.x-1.x-dev`
 
 #### Or globally
 
@@ -52,7 +52,7 @@ You can install it in your `~/.drush` folder.
   * From `drush-extensions/Commands` run
 
      ```bash
-     git clone --branch 7.x-1.x https://github.com/vever001/dmt_structure_export.git
+     git clone --branch 7.x-1.x https://github.com/ioannis-ampatzis/dmt_structure_export.git
      cd dmt_structure_export
      composer install --no-dev
      ```

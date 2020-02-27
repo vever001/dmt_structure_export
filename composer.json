@@ -1,5 +1,5 @@
 {
-  "name": "vever001/dmt_structure_export",
+  "name": "ioannis-ampatzis/dmt_structure_export",
   "description": "Drush commands to export D7 site structure.",
   "type": "drupal-drush",
   "keywords": ["drupal", "drush", "automation"],
