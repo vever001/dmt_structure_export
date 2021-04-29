@@ -22,12 +22,14 @@ class Utilities {
    */
   public static function getEntityDataCount($entity_type, $bundle = NULL) {
     $entity_storage = \Drupal::entityTypeManager()->getStorage($entity_type);
-    if (is_a($entity_storage, '\Drupal\rdf_entity\Entity\RdfEntitySparqlStorage', TRUE)) {
+    if (is_a($entity_storage, '\Drupal\rdf_entity\Entity\RdfEntitySparqlStorage', TRUE) || $entity_type === 'skos_concept' || $entity_type === 'skos_concept_scheme') {
       // Skip for rdf_entity (bug?).
       // TypeError: Return value of Drupal\rdf_entity\RdfGraphHandler::
       // getEntityTypeGraphUris() must be of the type array, null returned
       // in Drupal\rdf_entity\RdfGraphHandler->getEntityTypeGraphUris()
       // (line 164 of rdf_entity/src/RdfGraphHandler.php).
+      // Also skip entity types "skos_concept" and "skos_concept_scheme". Bug
+      // introduced with EWCMS 1.19.0.
       return FALSE;
     }
 
@@ -38,8 +40,8 @@ class Utilities {
         $query->condition($bundle_key, $bundle);
       }
     }
-
     $query->accessCheck(FALSE);
+
     return (int) $query->count()->execute();
   }
 
